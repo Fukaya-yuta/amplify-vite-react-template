@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Auth } from "aws-amplify";
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<{ username: string } | null>(null);
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
-      .then(user => setUser(user))
+      .then((user: { username: string }) => setUser(user))
       .catch(() => setUser(null));
   }, []);
 
