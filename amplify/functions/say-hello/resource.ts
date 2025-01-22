@@ -1,21 +1,15 @@
-import { execSync } from "node:child_process";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
-import { defineFunction } from "@aws-amplify/backend";
-import { DockerImage, Duration } from "aws-cdk-lib";
-import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
-
-const functionDir = path.dirname(fileURLToPath(import.meta.url));
+import { Construct } from 'constructs'; // 追加
+import { FunctionProps } from 'aws-cdk-lib/aws-lambda'; // 追加
 
 export const sayHelloFunctionHandler = defineFunction(
-  (scope) =>
+  (scope: Construct) => // 型を指定
     new Function(scope, "say-hello", {
       handler: "index.handler",
-      runtime: Runtime.PYTHON_3_9, // or any other python version
-      timeout: Duration.seconds(20), //  default is 3 seconds
+      runtime: Runtime.PYTHON_3_9,
+      timeout: Duration.seconds(20),
       code: Code.fromAsset(functionDir, {
         bundling: {
-          image: DockerImage.fromRegistry("dummy"), // replace with desired image from AWS ECR Public Gallery
+          image: DockerImage.fromRegistry("dummy"),
           local: {
             tryBundle(outputDir: string) {
               execSync(
@@ -27,5 +21,5 @@ export const sayHelloFunctionHandler = defineFunction(
           },
         },
       }),
-    })
+    } as FunctionProps) // 型を指定
 );
