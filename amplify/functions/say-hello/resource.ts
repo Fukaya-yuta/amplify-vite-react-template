@@ -1,8 +1,9 @@
 import { Construct } from 'constructs';
-import { Function, FunctionProps, Runtime, Code, DockerImage } from 'aws-cdk-lib/aws-lambda';
+import { Function, FunctionProps, Runtime, Code } from 'aws-cdk-lib/aws-lambda';
 import { Duration } from 'aws-cdk-lib';
 import { execSync } from 'child_process';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { defineFunction } from '@aws-amplify/backend';
 
 const functionDir = path.dirname(fileURLToPath(import.meta.url));
@@ -15,7 +16,6 @@ export const sayHelloFunctionHandler = defineFunction(
       timeout: Duration.seconds(20),
       code: Code.fromAsset(functionDir, {
         bundling: {
-          image: DockerImage.fromRegistry("dummy"),
           local: {
             tryBundle(outputDir: string) {
               execSync(
