@@ -1,8 +1,14 @@
-import { Construct } from 'constructs'; // 追加
-import { FunctionProps } from 'aws-cdk-lib/aws-lambda'; // 追加
+import { Construct } from 'constructs';
+import { Function, FunctionProps, Runtime, Code, DockerImage } from 'aws-cdk-lib/aws-lambda';
+import { Duration } from 'aws-cdk-lib';
+import { execSync } from 'child_process';
+import * as path from 'path';
+import { defineFunction } from '@aws-amplify/backend';
+
+const functionDir = path.dirname(fileURLToPath(import.meta.url));
 
 export const sayHelloFunctionHandler = defineFunction(
-  (scope: Construct) => // 型を指定
+  (scope: Construct) =>
     new Function(scope, "say-hello", {
       handler: "index.handler",
       runtime: Runtime.PYTHON_3_9,
@@ -21,5 +27,5 @@ export const sayHelloFunctionHandler = defineFunction(
           },
         },
       }),
-    } as FunctionProps) // 型を指定
+    } as FunctionProps)
 );
