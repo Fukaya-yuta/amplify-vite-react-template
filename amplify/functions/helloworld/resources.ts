@@ -91,6 +91,7 @@ export class HelloWorldLambdaStack extends Stack {
       },
       layers: [lambda.LayerVersion.fromLayerVersionArn(this, 'SnowflakeConnectLayer', props.snowflakeConnectLayerArn)],
       role: lambdaRole,
+      allowPublicSubnet: true, // ここを追加
     });
 
     new CfnOutput(this, 'SnowflakeConnectLambdaArn', {
