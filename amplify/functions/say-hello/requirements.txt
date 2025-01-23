@@ -1,2 +1,0 @@
-request==2.25.1
-some-other-package>=1.0.0
