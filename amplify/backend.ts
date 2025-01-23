@@ -1,11 +1,12 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
-import { HelloWorldLambdaStack } from  './functions/helloworld/resources'; 
+import { HelloWorldLambdaStack } from './functions/helloworld/resources';
 
-defineBackend({
+const backend = defineBackend({
   auth,
 });
 
 // バックエンドに HelloWorld カスタム Lambda スタックを追加します。
-new  HelloWorldLambdaStack ( 
-  backend.createStack ( 'HelloWorldLambdaStack' ), 'helloWorldLambdaResource' ,   {} );
+new HelloWorldLambdaStack(
+  backend.createStack('HelloWorldLambdaStack'), 'helloWorldLambdaResource', {}
+);
