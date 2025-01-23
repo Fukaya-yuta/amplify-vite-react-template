@@ -8,9 +8,9 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
   environment: string;
-  lambdaProtectedSubnet1: ec2.ISubnet;
-  lambdaProtectedSubnet2: ec2.ISubnet;
-  lambdaSecurityGroupID: ec2.ISecurityGroup;
+  lambdaProtectedSubnet1: string;
+  lambdaProtectedSubnet2: string;
+  lambdaSecurityGroupID: string;
   lambdaArchiveBucketName: string;
   lambdaArchiveBucketObjectKey: string;
   lambdaArchiveObjectVersionID: string;
@@ -18,7 +18,7 @@ interface HelloWorldLambdaStackProps extends StackProps {
   lambdaHandler: string;
   lambdaMemorySize: number;
   lambdaTimeout: number;
-  lambdaRuntime: lambda.Runtime;
+  lambdaRuntime: string;
   ssmParameterNameForSnowflakePassword: string;
   ssmParameterNameForSnowflakeAccount: string;
   ssmParameterNameForSnowflakeUser: string;
@@ -64,12 +64,15 @@ export class HelloWorldLambdaStack extends Stack {
       vpc: ec2.Vpc.fromVpcAttributes(this, 'Vpc', {
         vpcId: 'vpc-12345678',
         availabilityZones: ['ap-northeast-1a', 'ap-northeast-1c'],
-        publicSubnetIds: ['subnet-051a99ad5edb338a1', 'subnet-08809bd4cc0d61ae6'],
+        publicSubnetIds: [props.lambdaProtectedSubnet1, props.lambdaProtectedSubnet2],
       }),
       vpcSubnets: {
-        subnets: [props.lambdaProtectedSubnet1, props.lambdaProtectedSubnet2],
+        subnets: [
+          ec2.Subnet.fromSubnetId(this, 'Subnet1', props.lambdaProtectedSubnet1),
+          ec2.Subnet.fromSubnetId(this, 'Subnet2', props.lambdaProtectedSubnet2),
+        ],
       },
-      securityGroups: [props.lambdaSecurityGroupID],
+      securityGroups: [ec2.SecurityGroup.fromSecurityGroupId(this, 'SecurityGroup', props.lambdaSecurityGroupID)],
       code: lambda.Code.fromBucket(
         s3.Bucket.fromBucketName(this, 'LambdaArchiveBucket', props.lambdaArchiveBucketName),
         props.lambdaArchiveBucketObjectKey,
