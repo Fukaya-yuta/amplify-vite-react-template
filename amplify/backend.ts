@@ -1,8 +1,8 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
-import { sayHelloFunctionHandler } from './functions/say-hello/resource';
+import { hogeFunctionHandler } from './functions/say-hello/resource'; // 関数名を修正
 
 defineBackend({
   auth,
-  sayHelloFunctionHandler,
+  hogeFunctionHandler, // 関数名を修正
 });
