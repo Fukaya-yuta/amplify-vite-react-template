@@ -19,7 +19,7 @@ frontend:
     preBuild:
       commands:
         - npm ci
-        - jq -r '.HelloWorldLambdaStack.ApiGatewayInvokeURL' < ./cdk-outputs.json > ./src/amplify_outputs.json
+        - if [ -f ./cdk-outputs.json ]; then jq -r '.HelloWorldLambdaStack.ApiGatewayInvokeURL' < ./cdk-outputs.json > ./src/amplify_outputs.json; fi
     build:
       commands:
         - npm run build
