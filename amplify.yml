@@ -19,7 +19,7 @@ frontend:
     preBuild:
       commands:
         - npm ci
-        - export REACT_APP_API_GATEWAY_URL=$(cat ./cdk-outputs.json | jq -r '.HelloWorldLambdaStack.ApiGatewayInvokeURL')
+        - jq -r '.HelloWorldLambdaStack.ApiGatewayInvokeURL' < ./cdk-outputs.json > ./src/amplify_outputs.json
     build:
       commands:
         - npm run build

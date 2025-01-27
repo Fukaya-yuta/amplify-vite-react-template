@@ -7,7 +7,7 @@ function App() {
 
   useEffect(() => {
     // amplify_outputs.jsonファイルを動的に読み込む
-    import('../amplify_outputs.json')
+    import('./amplify_outputs.json')
       .then((config) => {
         setApiUrl(config.ApiGatewayInvokeURL);
       })
