@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Amplify } from 'aws-amplify';
 import { useAuthenticator } from '@aws-amplify/ui-react';
-import outputs from '@/amplify_outputs.json';
+import outputs from './amplify_outputs.json'; // パスを修正
+import { LineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 Amplify.configure(outputs);
 
@@ -22,7 +23,7 @@ function App() {
 
   async function invokeLambda() {
     async function fetchLambda(clientId: string) {
-      const apiUrl = `https://chm0clxf5l.execute-api.ap-northeast-1.amazonaws.com/prod/data`;
+      const apiUrl = `https://0c1s69z3nj.execute-api.ap-northeast-1.amazonaws.com/dev/data`;
 
       const queryParams = new URLSearchParams({
         client_id: clientId,
