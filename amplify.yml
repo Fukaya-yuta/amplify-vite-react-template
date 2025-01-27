@@ -18,3 +18,6 @@ frontend:
     paths:
       - .npm/**/*
       - node_modules/**/*
+  env:
+    variables:
+      REACT_APP_API_GATEWAY_URL: "`cat ./cdk-outputs.json | jq -r '.HelloWorldLambdaStack.ApiGatewayInvokeURL'`"
