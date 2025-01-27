@@ -20,7 +20,7 @@ function App() {
       const result = await response.json();
       setData(JSON.stringify(result));
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
       setData(null);
     }
