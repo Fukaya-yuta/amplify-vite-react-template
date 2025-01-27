@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -91,12 +92,29 @@ export class HelloWorldLambdaStack extends Stack {
       },
       layers: [lambda.LayerVersion.fromLayerVersionArn(this, 'SnowflakeConnectLayer', props.snowflakeConnectLayerArn)],
       role: lambdaRole,
-      allowPublicSubnet: true, // ここを追加
+      allowPublicSubnet: true,
     });
+
+    const api = new apigateway.RestApi(this, 'ApiGateway', {
+      restApiName: `${props.projectName}-${props.environment}-api`,
+      description: 'API Gateway for Snowflake Connect Lambda',
+    });
+
+    const lambdaIntegration = new apigateway.LambdaIntegration(snowflakeConnectLambda, {
+      requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
+    });
+
+    const resource = api.root.addResource('data');
+    resource.addMethod('GET', lambdaIntegration);
 
     new CfnOutput(this, 'SnowflakeConnectLambdaArn', {
       value: snowflakeConnectLambda.functionArn,
       exportName: 'SnowflakeConnectLambdaArn',
+    });
+
+    new CfnOutput(this, 'ApiGatewayInvokeURL', {
+      value: api.url,
+      exportName: 'ApiGatewayInvokeURL',
     });
   }
 }

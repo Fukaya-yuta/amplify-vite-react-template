@@ -29,3 +29,21 @@ new HelloWorldLambdaStack(
     ssmParameterNameForSnowflakeSchema: '/snowflake/schema',
   }
 );
+
+// API Gatewayの設定を追加します。
+const api = new apigateway.RestApi(helloWorldLambdaStack, 'ApiGateway', {
+  restApiName: 'c-elect-meg-cloud-poc-api',
+  description: 'API Gateway for Snowflake Connect Lambda',
+});
+
+const lambdaIntegration = new apigateway.LambdaIntegration(helloWorldLambdaStack.snowflakeConnectLambda, {
+  requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
+});
+
+const resource = api.root.addResource('data');
+resource.addMethod('GET', lambdaIntegration);
+
+new CfnOutput(helloWorldLambdaStack, 'ApiGatewayInvokeURL', {
+  value: api.url,
+  exportName: 'ApiGatewayInvokeURL',
+});
