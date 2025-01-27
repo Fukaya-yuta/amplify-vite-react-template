@@ -22,7 +22,7 @@ function App() {
 
   async function invokeLambda() {
     async function fetchLambda(clientId: string) {
-      const apiUrl = `https://0c1s69z3nj.execute-api.ap-northeast-1.amazonaws.com/dev/data`;
+      const apiUrl = `https://chm0clxf5l.execute-api.ap-northeast-1.amazonaws.com/prod/data`;
 
       const queryParams = new URLSearchParams({
         client_id: clientId,
