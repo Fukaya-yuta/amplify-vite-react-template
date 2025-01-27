@@ -33,26 +33,6 @@ export class HelloWorldLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
     super(scope, id, props);
 
-    const vpc = ec2.Vpc.fromVpcAttributes(this, 'Vpc', {
-      vpcId: 'vpc-12345678',
-      availabilityZones: ['ap-northeast-1a', 'ap-northeast-1c'],
-      publicSubnetIds: [props.lambdaProtectedSubnet1, props.lambdaProtectedSubnet2],
-    });
-
-    const routeTable = new ec2.RouteTable(this, 'RouteTable', {
-      vpc,
-    });
-
-    new ec2.CfnRouteTableAssociation(this, 'RouteTableAssociation1', {
-      routeTableId: routeTable.routeTableId,
-      subnetId: props.lambdaProtectedSubnet1,
-    });
-
-    new ec2.CfnRouteTableAssociation(this, 'RouteTableAssociation2', {
-      routeTableId: routeTable.routeTableId,
-      subnetId: props.lambdaProtectedSubnet2,
-    });
-
     const lambdaRole = new iam.Role(this, 'SnowflakeConnectLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       inlinePolicies: {
@@ -84,7 +64,11 @@ export class HelloWorldLambdaStack extends Stack {
     });
 
     this.snowflakeConnectLambda = new lambda.Function(this, 'SnowflakeConnectLambda', {
-      vpc,
+      vpc: ec2.Vpc.fromVpcAttributes(this, 'Vpc', {
+        vpcId: 'vpc-12345678',
+        availabilityZones: ['ap-northeast-1a', 'ap-northeast-1c'],
+        publicSubnetIds: [props.lambdaProtectedSubnet1, props.lambdaProtectedSubnet2],
+      }),
       vpcSubnets: {
         subnets: [
           ec2.Subnet.fromSubnetId(this, 'Subnet1', props.lambdaProtectedSubnet1),
