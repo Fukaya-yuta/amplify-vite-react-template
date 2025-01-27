@@ -6,7 +6,7 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('https://YOUR_API_GATEWAY_ID.execute-api.ap-northeast-1.amazonaws.com/dev/data', {
+      const response = await fetch('https://chm0clxf5l.execute-api.ap-northeast-1.amazonaws.com/dev/data', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
