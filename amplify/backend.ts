@@ -1,13 +1,15 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { HelloWorldLambdaStack } from './functions/helloworld/resources';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import { CfnOutput } from 'aws-cdk-lib';
 
 const backend = defineBackend({
   auth,
 });
 
 // バックエンドに HelloWorld カスタム Lambda スタックを追加します。
-new HelloWorldLambdaStack(
+const helloWorldLambdaStack = new HelloWorldLambdaStack(
   backend.createStack('HelloWorldLambdaStack'), 'helloWorldLambdaResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
