@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function App() {
   const [data, setData] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [apiUrl, setApiUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // amplify_outputs.jsonファイルを動的に読み込む
+    import('../amplify_outputs.json')
+      .then((config) => {
+        setApiUrl(config.ApiGatewayInvokeURL);
+      })
+      .catch((err) => {
+        setError(`Failed to load API URL: ${err.message}`);
+      });
+  }, []);
 
   const fetchData = async () => {
+    if (!apiUrl) {
+      setError('API URL is not set');
+      return;
+    }
+
     try {
-      const response = await fetch(process.env.REACT_APP_API_GATEWAY_URL as string, {
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
