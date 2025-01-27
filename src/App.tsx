@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 function App() {
   const [data, setData] = useState<string | null>(null);
@@ -6,7 +6,7 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('https://0c1s69z3nj.execute-api.ap-northeast-1.amazonaws.com/dev/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours', {
+      const response = await fetch('https://chm0clxf5l.execute-api.ap-northeast-1.amazonaws.com/prod/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
