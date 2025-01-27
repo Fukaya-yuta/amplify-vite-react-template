@@ -1,8 +1,4 @@
 import React, { useState } from 'react';
-import { Amplify } from 'aws-amplify';
-import outputs from './amplify_outputs.json'; // パスを修正
-
-Amplify.configure(outputs);
 
 function App() {
   const [data, setData] = useState<string | null>(null);
