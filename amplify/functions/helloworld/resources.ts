@@ -28,6 +28,8 @@ interface HelloWorldLambdaStackProps extends StackProps {
 }
 
 export class HelloWorldLambdaStack extends Stack {
+  public readonly snowflakeConnectLambda: lambda.Function;
+
   constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
     super(scope, id, props);
 
@@ -61,7 +63,7 @@ export class HelloWorldLambdaStack extends Stack {
       },
     });
 
-    const snowflakeConnectLambda = new lambda.Function(this, 'SnowflakeConnectLambda', {
+    this.snowflakeConnectLambda = new lambda.Function(this, 'SnowflakeConnectLambda', {
       vpc: ec2.Vpc.fromVpcAttributes(this, 'Vpc', {
         vpcId: 'vpc-12345678',
         availabilityZones: ['ap-northeast-1a', 'ap-northeast-1c'],
@@ -100,7 +102,7 @@ export class HelloWorldLambdaStack extends Stack {
       description: 'API Gateway for Snowflake Connect Lambda',
     });
 
-    const lambdaIntegration = new apigateway.LambdaIntegration(snowflakeConnectLambda, {
+    const lambdaIntegration = new apigateway.LambdaIntegration(this.snowflakeConnectLambda, {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
     });
 
@@ -108,7 +110,7 @@ export class HelloWorldLambdaStack extends Stack {
     resource.addMethod('GET', lambdaIntegration);
 
     new CfnOutput(this, 'SnowflakeConnectLambdaArn', {
-      value: snowflakeConnectLambda.functionArn,
+      value: this.snowflakeConnectLambda.functionArn,
       exportName: 'SnowflakeConnectLambdaArn',
     });
 
