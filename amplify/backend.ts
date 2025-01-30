@@ -7,7 +7,7 @@ const backend = defineBackend({
 });
 
 // バックエンドに HelloWorld カスタム Lambda スタックを追加します。
-new HelloWorldLambdaStack(
+const helloWorldLambdaStack = new HelloWorldLambdaStack(
   backend.createStack('HelloWorldLambdaStack'), 'helloWorldLambdaResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
@@ -29,3 +29,10 @@ new HelloWorldLambdaStack(
     ssmParameterNameForSnowflakeSchema: '/snowflake/schema',
   }
 );
+
+// API GatewayのAPI URLをamplify_outputs.jsonに出力
+backend.addOutput({
+  api: {
+    apiGatewayInvokeURL: helloWorldLambdaStack.api.url,
+  },
+});

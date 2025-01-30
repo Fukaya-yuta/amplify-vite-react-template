@@ -29,6 +29,7 @@ interface HelloWorldLambdaStackProps extends StackProps {
 
 export class HelloWorldLambdaStack extends Stack {
   public readonly snowflakeConnectLambda: lambda.Function;
+  public readonly api: apigateway.RestApi; // 追加
 
   constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
     super(scope, id, props);
@@ -97,7 +98,7 @@ export class HelloWorldLambdaStack extends Stack {
       allowPublicSubnet: true,
     });
 
-    const api = new apigateway.RestApi(this, 'ApiGateway', {
+    this.api = new apigateway.RestApi(this, 'ApiGateway', {
       restApiName: `${props.projectName}-${props.environment}-api`,
       description: 'API Gateway for Snowflake Connect Lambda',
     });
@@ -106,7 +107,7 @@ export class HelloWorldLambdaStack extends Stack {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
     });
 
-    const resource = api.root.addResource('data');
+    const resource = this.api.root.addResource('data');
     resource.addMethod('GET', lambdaIntegration);
 
     // OPTIONSメソッドの追加
@@ -140,7 +141,7 @@ export class HelloWorldLambdaStack extends Stack {
     });
 
     new CfnOutput(this, 'ApiGatewayInvokeURL', {
-      value: api.url,
+      value: this.api.url,
       exportName: 'ApiGatewayInvokeURL',
     });
   }
