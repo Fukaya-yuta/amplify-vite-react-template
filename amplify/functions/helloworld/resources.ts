@@ -137,12 +137,12 @@ export class HelloWorldLambdaStack extends Stack {
 
     new CfnOutput(this, 'SnowflakeConnectLambdaArn', {
       value: this.snowflakeConnectLambda.functionArn,
-      exportName: 'SnowflakeConnectLambdaArn',
+      exportName: `${props.projectName}-${props.environment}-SnowflakeConnectLambdaArn`,
     });
 
     new CfnOutput(this, 'ApiGatewayInvokeURL', {
       value: this.api.url,
-      exportName: 'ApiGatewayInvokeURL',
+      exportName: `${props.projectName}-${props.environment}-ApiGatewayInvokeURL`,
     });
   }
 }
