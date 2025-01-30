@@ -32,7 +32,7 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
-  api: {
+  custom: {
     apiGatewayInvokeURL: helloWorldLambdaStack.api.url,
   },
 });
