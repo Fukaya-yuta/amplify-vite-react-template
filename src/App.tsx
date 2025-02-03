@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import outputs from "@/amplify_outputs.json";
+import outputs from '@/amplify_outputs.json';
 
 function App() {
   const [data, setData] = useState<string | null>(null);
@@ -7,7 +7,10 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('https://chm0clxf5l.execute-api.ap-northeast-1.amazonaws.com/prod/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours', {
+      // API GatewayのURLをamplify_outputs.jsonから動的に取得
+      const apiUrl = `${outputs.custom.apiGatewayInvokeURL}data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`;
+      
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -30,10 +33,11 @@ function App() {
   return (
     <main>
       <h1>Welcome to My App</h1>
+      {/* API Gateway URLを表示 */}
+      <p>API Gateway URL: {outputs.custom.apiGatewayInvokeURL}</p>
       <button onClick={fetchData}>Fetch Data</button>
       {data && <pre>{data}</pre>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <p>API Gateway Invoke URL: {outputs.custom.apiGatewayInvokeURL}</p>
     </main>
   );
 }
