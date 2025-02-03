@@ -7,13 +7,6 @@ backend:
         - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
-    preBuild:
-      commands:
-        - npm ci
-        - curl -L -o jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-        - chmod +x ./jq
-        - if [ ! -f amplify_output.json ]; then echo "amplify_output.json not found"; exit 1; fi
-        - export API_ENDPOINT=$(./jq -r '.custom.apiGatewayInvokeURL' amplify_output.json)
     build:
       commands:
         - npm run build
@@ -25,6 +18,3 @@ frontend:
     paths:
       - .npm/**/*
       - node_modules/**/*
-  environment:
-    variables:
-      API_ENDPOINT: $(./jq -r '.custom.apiGatewayInvokeURL' amplify_output.json)
