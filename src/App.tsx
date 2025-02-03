@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import outputs from './amplify_outputs.json';
+import outputs from '../amplify_outputs.json';
 
 function App() {
   const [data, setData] = useState<string | null>(null);
