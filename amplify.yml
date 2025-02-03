@@ -10,7 +10,7 @@ frontend:
     preBuild:
       commands:
         - npm ci
-        - curl -L -o jq https://stedolan.github.io/jq/download/linux64/jq
+        - curl -L -o jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
         - chmod +x ./jq
         - export API_ENDPOINT=$(./jq -r '.custom.apiGatewayInvokeURL' amplify_output.json)
     build:
