@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import outputs from "@/amplify_outputs.json";
 
 function App() {
   const [data, setData] = useState<string | null>(null);
@@ -32,6 +33,7 @@ function App() {
       <button onClick={fetchData}>Fetch Data</button>
       {data && <pre>{data}</pre>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      <p>API Gateway Invoke URL: {outputs.custom.apiGatewayInvokeURL}</p>
     </main>
   );
 }
