@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import amplifyOutputs from './amplify_outputs.json';
+import path from 'path';
+import fs from 'fs';
+
+const amplifyOutputPath = path.join(__dirname, '../amplify/backend/amplify-output.json');
+let amplifyOutputs = {};
+
+if (fs.existsSync(amplifyOutputPath)) {
+    amplifyOutputs = require(amplifyOutputPath);
+} else {
+    console.error("amplify-output.json が見つかりません");
+}
 
 function App() {
   const [apiUrl, setApiUrl] = useState('');
 
   useEffect(() => {
-    // amplify_outputs.json から API Gateway の URL を取得
+    // amplify-output.json から API Gateway の URL を取得
     if (amplifyOutputs.custom && amplifyOutputs.custom.apiGatewayInvokeURL) {
       setApiUrl(amplifyOutputs.custom.apiGatewayInvokeURL);
     }
