@@ -36,3 +36,6 @@ backend.addOutput({
     apiGatewayInvokeURL: helloWorldLambdaStack.api.url,
   },
 });
+
+// `amplify_output.json` のパスをログ出力
+console.log("Amplify output file is generated at:", backend.outputFilePath);
