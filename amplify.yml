@@ -7,6 +7,10 @@ backend:
         - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
+    preBuild:
+      commands:
+        - npm ci
+        - export API_ENDPOINT=$(jq -r '.custom.apiGatewayInvokeURL' amplify_output.json)
     build:
       commands:
         - npm run build
