@@ -3,8 +3,6 @@ import outputs from "@/amplify_outputs.json";
 
 Amplify.configure(outputs);
 
-const currentConfig = Amplify.getConfig();
-
 const apiEndpoint = outputs.custom.apiGatewayInvokeURL;
 console.log("API Endpoint:", apiEndpoint);
 
