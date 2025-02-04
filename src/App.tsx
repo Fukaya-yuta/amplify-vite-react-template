@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { defineBackend } from "@aws-amplify/backend";
-import { auth } from "./auth/resource";
-import { data } from "./data/resource";
 
 Amplify.configure(outputs);
 
