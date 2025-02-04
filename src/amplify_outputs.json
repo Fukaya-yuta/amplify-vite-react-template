@@ -1,0 +1,28 @@
+{
+    "auth": {
+      "user_pool_id": "ap-northeast-1_8NiKkMvj0",
+      "aws_region": "ap-northeast-1",
+      "user_pool_client_id": "u2b1iiskakss6da2dvrjdq4ps",
+      "identity_pool_id": "ap-northeast-1:a1e371d4-915e-4465-8f79-05f2afa3df6e",
+      "mfa_methods": [],
+      "standard_required_attributes": [
+        "email"
+      ],
+      "username_attributes": [
+        "email"
+      ],
+      "user_verification_types": [
+        "email"
+      ],
+      "mfa_configuration": "NONE",
+      "password_policy": {
+        "min_length": 8,
+        "require_lowercase": true,
+        "require_numbers": true,
+        "require_symbols": true,
+        "require_uppercase": true
+      },
+      "unauthenticated_identities_enabled": true
+    },
+    "version": "1.2"
+  }
