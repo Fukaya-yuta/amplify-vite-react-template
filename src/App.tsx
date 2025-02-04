@@ -4,7 +4,7 @@ import outputs from "@/amplify_outputs.json";
 
 Amplify.configure(outputs);
 
-const backendOutputs = backend.getOutputs();
+const backendOutputs = Amplify.getConfig();
 console.log(backendOutputs.custom.apiGatewayInvokeURL);
 
 function App() {
@@ -13,7 +13,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setApiEndpoint(backendOutputs.custom.apiGatewayInvokeURL);
+    setApiEndpoint(outputs.custom.apiGatewayInvokeURL);
   }, []);
 
   const fetchData = async () => {
