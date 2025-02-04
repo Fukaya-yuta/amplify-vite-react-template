@@ -5,9 +5,9 @@ import outputs from "../amplify_outputs.json";
 Amplify.configure(outputs);
 
 const App = () => {
+  const [apiEndpoint, setApiEndpoint] = useState("");
   const [data, setData] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [apiEndpoint, setApiEndpoint] = useState("");
 
   useEffect(() => {
     const endpoint = outputs.custom.apiGatewayInvokeURL;
@@ -16,7 +16,7 @@ const App = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('https://chm0clxf5l.execute-api.ap-northeast-1.amazonaws.com/prod/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours', {
+      const response = await fetch(`${apiEndpoint}/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -33,10 +33,16 @@ const App = () => {
     } catch (err: any) {
       setError(err.message);
       setData(null);
+    }
+  };
 
   return (
     <div>
+      <h1>Welcome to My App</h1>
+      <p>API Endpoint: {apiEndpoint}</p>
       <button onClick={fetchData}>Fetch Data</button>
+      {data && <pre>{data}</pre>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 };
