@@ -1,14 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
-import { defineBackend } from "@aws-amplify/backend";
 
 Amplify.configure(outputs);
-
-const backend = defineBackend({
-  auth, 
-  data, 
-});
 
 const backendOutputs = backend.getOutputs();
 console.log(backendOutputs.custom.apiGatewayInvokeURL);
