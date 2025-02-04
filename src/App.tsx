@@ -10,12 +10,10 @@ const App = () => {
   useEffect(() => {
     const endpoint = outputs.custom.apiGatewayInvokeURL;
     setApiEndpoint(endpoint);
-    console.log("API Endpoint:", endpoint);
   }, []);
 
   return (
     <div>
-      <h1>Hello, World!</h1>
       <p>API Endpoint: {apiEndpoint}</p>
     </div>
   );
