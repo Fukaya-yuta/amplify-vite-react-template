@@ -1,13 +1,13 @@
 import { Stack, StackProps, Duration, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Amplify } from "aws-amplify";
-import outputs from "../amplify_outputs.json";
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { UserPool } from 'aws-cdk-lib/aws-cognito'; // 追加
+import outputs from '../amplify_outputs.json'; // 修正
 
 Amplify.configure(outputs);
 
@@ -146,7 +146,7 @@ export class HelloWorldLambdaStack extends Stack {
         statusCode: '200',
         responseParameters: {
           'method.response.header.Access-Control-Allow-Headers': true,
-          'method.response.header.Access-Control-Allow-Methods': true,
+         .response.header.Access-Control-Allow-Methods': true,
           'method.response.header.Access-Control-Allow-Origin': true,
         },
       }],
