@@ -103,12 +103,20 @@ export class HelloWorldLambdaStack extends Stack {
       description: 'API Gateway for Snowflake Connect Lambda',
     });
 
+    // Cognitoオーソライザーの設定
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [cognito.UserPool.fromUserPoolId(this, 'UserPool', 'ap-northeast-1_8NiKkMvj0')],
+    });
+
     const lambdaIntegration = new apigateway.LambdaIntegration(this.snowflakeConnectLambda, {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
     });
 
     const resource = this.api.root.addResource('data');
-    resource.addMethod('GET', lambdaIntegration);
+    resource.addMethod('GET', lambdaIntegration, {
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
