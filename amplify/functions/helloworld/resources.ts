@@ -7,7 +7,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import * as fs from 'fs';
+import { UserPool } from 'aws-cdk-lib/aws-cognito'; // 追加
 
 Amplify.configure(outputs);
 
@@ -40,9 +40,8 @@ export class HelloWorldLambdaStack extends Stack {
     super(scope, id, props);
 
     // amplify_outputs.jsonから値を取得
-    const amplifyOutputs = JSON.parse(fs.readFileSync('amplify_outputs.json', 'utf8'));
-    const userPoolId = amplifyOutputs.auth.user_pool_id;
-    const userPoolClientId = amplifyOutputs.auth.user_pool_client_id;
+    const userPoolId = outputs.auth.user_pool_id;
+    const userPoolClientId = outputs.auth.user_pool_client_id;
 
     const lambdaRole = new iam.Role(this, 'SnowflakeConnectLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
@@ -115,7 +114,7 @@ export class HelloWorldLambdaStack extends Stack {
 
     // Cognitoオーソライザーの設定
     const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-      cognitoUserPools: [apigateway.UserPool.fromUserPoolId(this, 'UserPool', userPoolId)],
+      cognitoUserPools: [UserPool.fromUserPoolId(this, 'UserPool', userPoolId)],
     });
 
     const lambdaIntegration = new apigateway.LambdaIntegration(this.snowflakeConnectLambda, {
