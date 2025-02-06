@@ -120,6 +120,12 @@ export class HelloWorldLambdaStack extends Stack {
       ],
     });
 
+    // GETメソッドにオーソライザーを追加
+    resource.addMethod('GET', lambdaIntegration, {
+      authorizer: authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
+
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
       integrationResponses: [{
