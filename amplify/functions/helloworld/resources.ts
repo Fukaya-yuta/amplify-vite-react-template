@@ -5,7 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { UserPool } from 'aws-cdk-lib/aws-cognito'; // UserPoolのインポート
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -112,6 +112,13 @@ export class HelloWorldLambdaStack extends Stack {
 
     const resource = this.api.root.addResource('data');
     resource.addMethod('GET', lambdaIntegration);
+
+    // Cognitoオーソライザーの追加
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [
+        cognito.UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId),
+      ],
+    });
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
