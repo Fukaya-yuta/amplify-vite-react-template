@@ -27,10 +27,14 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
     ssmParameterNameForSnowflakeUser: '/snowflake/user',
     ssmParameterNameForSnowflakeDatabase: '/snowflake/database',
     ssmParameterNameForSnowflakeSchema: '/snowflake/schema',
-    userPoolId: backend.auth.resources.userPool.userPoolId,
-    userPoolClientId: backend.auth.resources.userPoolClient.userPoolClientId,
+    // userPoolId: backend.auth.resources.userPool.userPoolId,
+    //userPoolClientId: backend.auth.resources.userPoolClient.userPoolClientId,
   }
 );
+
+// userPoolId と userPoolClientId の値をログに出力
+console.log('User Pool ID:', backend.auth.resources.userPool.userPoolId);
+console.log('User Pool Client ID:', backend.auth.resources.userPoolClient.userPoolClientId);
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
