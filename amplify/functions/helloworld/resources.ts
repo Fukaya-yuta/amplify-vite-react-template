@@ -132,7 +132,12 @@ export class HelloWorldLambdaStack extends Stack {
         responseParameters: {
           'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
           'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'",
-          'method.response.header.Access-Control-Allow-Origin': "'*'",/json': '{"statusCode": 200}',
+          'method.response.header.Access-Control-Allow-Origin': "'*'",
+        },
+      }],
+      passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+      requestTemplates: {
+        'application/json': '{"statusCode": 200}',
       },
     }), {
       methodResponses: [{
