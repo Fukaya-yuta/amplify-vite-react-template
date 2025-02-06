@@ -1,40 +1,50 @@
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
+import { useState, useEffect } from "react";
+import { Amplify } from "aws-amplify";
+import outputs from "../amplify_outputs.json";
 
-const client = generateClient<Schema>();
+Amplify.configure(outputs);
 
-function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+const App = () => {
+  const [apiEndpoint, setApiEndpoint] = useState("");
+  const [data, setData] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
+    const endpoint = outputs.custom.apiGatewayInvokeURL;
+    setApiEndpoint(endpoint);
   }, []);
 
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
-  }
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${apiEndpoint}/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      setData(JSON.stringify(result));
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+      setData(null);
+    }
+  };
 
   return (
-    <main>
-      <h1>My todos</h1>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
-    </main>
+    <div>
+      <h1>Welcome to My App</h1>
+      <p>API Endpoint: {apiEndpoint}</p>
+      <button onClick={fetchData}>Fetch Data</button>
+      {data && <pre>{data}</pre>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
   );
-}
+};
 
 export default App;
