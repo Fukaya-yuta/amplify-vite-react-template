@@ -5,7 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { UserPool } from 'aws-cdk-lib/aws-cognito'; // UserPoolのインポート
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -26,7 +26,7 @@ interface HelloWorldLambdaStackProps extends StackProps {
   ssmParameterNameForSnowflakeUser: string;
   ssmParameterNameForSnowflakeDatabase: string;
   ssmParameterNameForSnowflakeSchema: string;
-  userPoolId: string;
+  userPoolId: string; // 追加
 }
 
 export class HelloWorldLambdaStack extends Stack {
@@ -132,12 +132,7 @@ export class HelloWorldLambdaStack extends Stack {
         responseParameters: {
           'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
           'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'",
-          'method.response.header.Access-Control-Allow-Origin': "'*'",
-        },
-      }],
-      passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
-      requestTemplates: {
-        'application/json': '{"statusCode": 200}',
+          'method.response.header.Access-Control-Allow-Origin': "'*'",/json': '{"statusCode": 200}',
       },
     }), {
       methodResponses: [{
