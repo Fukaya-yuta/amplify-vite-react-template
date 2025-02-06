@@ -27,6 +27,8 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
     ssmParameterNameForSnowflakeUser: '/snowflake/user',
     ssmParameterNameForSnowflakeDatabase: '/snowflake/database',
     ssmParameterNameForSnowflakeSchema: '/snowflake/schema',
+    userPoolId: backend.auth.resources.userPool.userPoolId,
+    userPoolClientId: backend.auth.resources.userPoolClient.userPoolClientId,
   }
 );
 
