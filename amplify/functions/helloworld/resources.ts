@@ -5,7 +5,6 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import { auth } from '../amplify/auth/resource';
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -110,18 +109,6 @@ export class HelloWorldLambdaStack extends Stack {
 
     const resource = this.api.root.addResource('data');
     resource.addMethod('GET', lambdaIntegration);
-
-    // Cognitoユーザープールオーソライザーの作成
-    const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-      cognitoUserPools: [auth.resources.userPool],
-    });
-
-    // Cognito認証付きリソースパスの作成
-    const cognitoResource = this.api.root.addResource('cognito-auth-path');
-    cognitoResource.addMethod('GET', lambdaIntegration, {
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-      authorizer: cognitoAuthorizer,
-    });
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
