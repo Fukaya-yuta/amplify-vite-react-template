@@ -37,7 +37,7 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
 // Cognitoオーソライザーの追加
 const authorizer = new apigateway.CognitoUserPoolsAuthorizer(helloWorldLambdaStack, 'CognitoAuthorizer', {
   cognitoUserPools: [
-    cognito.UserPool.fromUserPoolId(helloWorldLambdaStack, 'UserPool', backend.auth.resources.userPool.userPoolId),
+    cognito.UserPool.fromUserPoolId(helloWorldLambdaStack, 'HelloWorldUserPool', backend.auth.resources.userPool.userPoolId),
   ],
 });
 
