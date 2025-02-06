@@ -25,11 +25,12 @@ interface HelloWorldLambdaStackProps extends StackProps {
   ssmParameterNameForSnowflakeUser: string;
   ssmParameterNameForSnowflakeDatabase: string;
   ssmParameterNameForSnowflakeSchema: string;
+  userPoolId: string;
 }
 
 export class HelloWorldLambdaStack extends Stack {
   public readonly snowflakeConnectLambda: lambda.Function;
-  public readonly api: apigateway.RestApi; // 追加
+  public readonly api: apigateway.RestApi;
 
   constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
     super(scope, id, props);
@@ -109,6 +110,19 @@ export class HelloWorldLambdaStack extends Stack {
 
     const resource = this.api.root.addResource('data');
     resource.addMethod('GET', lambdaIntegration);
+
+    // Cognitoユーザープールオーソライザーの作成
+    const userPool = UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId);
+    const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [userPool],
+    });
+
+    // Cognito認証付きリソースパスの作成
+    const cognitoResource = this.api.root.addResource('cognito-auth-path');
+    cognitoResource.addMethod('GET', lambdaIntegration, {
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+      authorizer: cognitoAuthorizer,
+    });
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({

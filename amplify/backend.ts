@@ -1,7 +1,6 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { HelloWorldLambdaStack } from './functions/helloworld/resources';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 const backend = defineBackend({
   auth,
@@ -28,20 +27,9 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
     ssmParameterNameForSnowflakeUser: '/snowflake/user',
     ssmParameterNameForSnowflakeDatabase: '/snowflake/database',
     ssmParameterNameForSnowflakeSchema: '/snowflake/schema',
+    userPoolId: backend.auth.resources.userPool.userPoolId,
   }
 );
-
-// Cognitoユーザープールオーソライザーの作成
-const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(helloWorldLambdaStack, 'CognitoAuthorizer', {
-  cognitoUserPools: [backend.auth.resources.userPool],
-});
-
-// Cognito認証付きリソースパスの作成
-const cognitoResource = helloWorldLambdaStack.api.root.addResource('cognito-auth-path');
-cognitoResource.addMethod('GET', new apigateway.LambdaIntegration(helloWorldLambdaStack.snowflakeConnectLambda), {
-  authorizationType: apigateway.AuthorizationType.COGNITO,
-  authorizer: cognitoAuthorizer,
-});
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
