@@ -39,32 +39,9 @@ export class HelloWorldLambdaStack extends Stack {
 
     const lambdaRole = new iam.Role(this, 'SnowflakeConnectLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      inlinePolicies: {
-        LambdaAccessForSnowflakeConnect: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['ssm:GetParameter', 'ssm:GetParameters', 'kms:Decrypt'],
-              resources: ['*'],
-            }),
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['logs:CreateLogGroup'],
-              resources: [`arn:aws:logs:${this.region}:${this.account}:*`],
-            }),
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
-              resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:/aws/lambda/${props.projectName}-${props.environment}-snowflake-connect:*`],
-            }),
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['ec2:CreateNetworkInterface', 'ec2:DescribeNetworkInterfaces', 'ec2:DeleteNetworkInterface'],
-              resources: ['*'],
-            }),
-          ],
-        }),
-      },
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
     });
 
     this.snowflakeConnectLambda = new lambda.Function(this, 'SnowflakeConnectLambda', {
