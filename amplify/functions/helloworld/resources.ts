@@ -117,12 +117,11 @@ export class HelloWorldLambdaStack extends Stack {
       cognitoUserPools: [
         cognito.UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId),
       ],
-      restApi: this.api, // RestApiを指定
     });
 
     // GETメソッドにオーソライザーを追加
     resource.addMethod('GET', lambdaIntegration, {
-      authorizer,
+      authorizer: authorizer,
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
