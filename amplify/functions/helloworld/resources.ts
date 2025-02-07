@@ -5,6 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -25,11 +26,13 @@ interface HelloWorldLambdaStackProps extends StackProps {
   ssmParameterNameForSnowflakeUser: string;
   ssmParameterNameForSnowflakeDatabase: string;
   ssmParameterNameForSnowflakeSchema: string;
+  userPoolId: string;
+  userPoolClientId: string;
 }
 
 export class HelloWorldLambdaStack extends Stack {
   public readonly snowflakeConnectLambda: lambda.Function;
-  public readonly api: apigateway.RestApi; // 追加
+  public readonly api: apigateway.RestApi;
 
   constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
     super(scope, id, props);
@@ -108,7 +111,14 @@ export class HelloWorldLambdaStack extends Stack {
     });
 
     const resource = this.api.root.addResource('data');
-    resource.addMethod('GET', lambdaIntegration);
+    resource.addMethod('GET', lambdaIntegration, {
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+      authorizer: new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+        cognitoUserPools: [
+          cognito.UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId),
+        ],
+      }),
+    });
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
