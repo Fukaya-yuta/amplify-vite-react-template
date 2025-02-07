@@ -5,7 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-//import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -106,12 +106,21 @@ export class HelloWorldLambdaStack extends Stack {
       description: 'API Gateway for Snowflake Connect Lambda',
     });
 
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [
+        cognito.UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId),
+      ],
+    });
+
     const lambdaIntegration = new apigateway.LambdaIntegration(this.snowflakeConnectLambda, {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
     });
 
     const resource = this.api.root.addResource('data');
-    resource.addMethod('GET', lambdaIntegration);
+    resource.addMethod('GET', lambdaIntegration, {
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    });
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
