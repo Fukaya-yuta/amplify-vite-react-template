@@ -111,14 +111,7 @@ export class HelloWorldLambdaStack extends Stack {
     });
 
     const resource = this.api.root.addResource('data');
-    resource.addMethod('GET', lambdaIntegration, {
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-      authorizer: new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-        cognitoUserPools: [
-          cognito.UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId),
-        ],
-      }),
-    });
+    resource.addMethod('GET', lambdaIntegration);
 
     // OPTIONSメソッドの追加
     resource.addMethod('OPTIONS', new apigateway.MockIntegration({
