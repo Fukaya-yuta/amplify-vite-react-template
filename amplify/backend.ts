@@ -7,9 +7,9 @@ const backend = defineBackend({
 });
 
 // バックエンドに HelloWorld カスタム Lambda スタックを追加します。
-const helloWorldLambdaStack = new HelloWorldLambdaStack(
-  backend.createStack('HelloWorldLambdaStack'), 'helloWorldLambdaResource', {
-    projectName: 'c-elect-meg-cloud',
+//const helloWorldLambdaStack = new HelloWorldLambdaStack(backend.createStack('HelloWorldLambdaStack'), 'helloWorldLambdaResource', {
+const helloWorldLambdaStack = new HelloWorldLambdaStack(backend.auth.stack, 'helloWorldLambdaResource', {
+  projectName: 'c-elect-meg-cloud',
     environment: 'poc',
     lambdaProtectedSubnet1: 'subnet-051a99ad5edb338a1',
     lambdaProtectedSubnet2: 'subnet-08809bd4cc0d61ae6',
