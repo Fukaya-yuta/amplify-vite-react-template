@@ -6,7 +6,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { userPoolId, userPoolClientId } from '../auth/resource'; // インポート
+import outputs from "../amplify_outputs.json";
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -104,6 +104,10 @@ export class HelloWorldLambdaStack extends Stack {
       restApiName: `${props.projectName}-${props.environment}-api`,
       description: 'API Gateway for Snowflake Connect Lambda',
     });
+
+    // amplify_outputs.jsonからCognitoのUser Pool IDとClient IDを取得
+    const userPoolId = outputs.auth.user_pool_id;
+    const userPoolClientId = outputs.auth.user_pool_client_id;
 
     // Cognito認証を追加
     const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
