@@ -6,7 +6,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import outputs from "../amplify_outputs.json";
+import outputs from '../../src/amplify_outputs.json'; // インポート
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
