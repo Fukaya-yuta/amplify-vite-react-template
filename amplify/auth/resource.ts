@@ -2,7 +2,6 @@ import { defineAuth } from '@aws-amplify/backend';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as cdk from 'aws-cdk-lib';
 
-
 /**
  * Define and configure your auth resource
  * @see https://docs.amplify.aws/gen2/build-a-backend/auth

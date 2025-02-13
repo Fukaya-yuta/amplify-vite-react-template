@@ -5,8 +5,8 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-//import * as cognito from 'aws-cdk-lib/aws-cognito';
-//import { userPoolId, userPoolClientId } from '../auth/resource';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import { userPoolId, userPoolClientId } from '../auth/resource'; // インポート
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -27,8 +27,6 @@ interface HelloWorldLambdaStackProps extends StackProps {
   ssmParameterNameForSnowflakeUser: string;
   ssmParameterNameForSnowflakeDatabase: string;
   ssmParameterNameForSnowflakeSchema: string;
-  userPoolId: string;
-  userPoolClientId: string;
 }
 
 export class HelloWorldLambdaStack extends Stack {
@@ -107,12 +105,12 @@ export class HelloWorldLambdaStack extends Stack {
       description: 'API Gateway for Snowflake Connect Lambda',
     });
 
-    // Cognito認証をコメントアウト
-    // const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-    //   cognitoUserPools: [
-    //     cognito.UserPool.fromUserPoolId(this, 'UserPool', props.userPoolId),
-    //   ],
-    // });
+    // Cognito認証を追加
+    const authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [
+        cognito.UserPool.fromUserPoolId(this, 'UserPool', userPoolId),
+      ],
+    });
 
     const lambdaIntegration = new apigateway.LambdaIntegration(this.snowflakeConnectLambda, {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
@@ -120,8 +118,8 @@ export class HelloWorldLambdaStack extends Stack {
 
     const resource = this.api.root.addResource('data');
     resource.addMethod('GET', lambdaIntegration, {
-      // authorizer,
-      // authorizationType: apigateway.AuthorizationType.COGNITO,
+      authorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
     // OPTIONSメソッドの追加
