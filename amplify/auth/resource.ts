@@ -1,6 +1,7 @@
 import { defineAuth } from '@aws-amplify/backend';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+
 
 /**
  * Define and configure your auth resource
@@ -12,7 +13,8 @@ export const auth = defineAuth({
   },
 });
 
-export const userPool = new cognito.UserPool(new Construct(), 'UserPool', {
+const stack = new cdk.Stack();
+export const userPool = new cognito.UserPool(stack, 'UserPool', {
   selfSignUpEnabled: true,
   signInAliases: { email: true },
   autoVerify: { email: true },
@@ -23,8 +25,7 @@ export const userPool = new cognito.UserPool(new Construct(), 'UserPool', {
     },
   },
 });
-
-export const userPoolClient = new cognito.UserPoolClient(new Construct(), 'UserPoolClient', {
+export const userPoolClient = new cognito.UserPoolClient(stack, 'UserPoolClient', {
   userPool,
 });
 
