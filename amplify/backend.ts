@@ -1,6 +1,5 @@
 import { defineBackend } from '@aws-amplify/backend';
-import { auth } from './auth/resource';
-import { HelloWorldLambdaStack } from './functions/helloworld/resources';
+import { Stack } from 'aws-cdk-lib';
 import {
   AuthorizationType,
   CognitoUserPoolsAuthorizer,
@@ -9,7 +8,10 @@ import {
   RestApi,
   MockIntegration,
   PassthroughBehavior,
-} from "aws-cdk-lib/aws-apigateway";
+} from 'aws-cdk-lib/aws-apigateway';
+import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { HelloWorldLambdaStack } from './functions/helloworld/resources';
+import { auth } from './auth/resource';
 
 const backend = defineBackend({
   auth,
@@ -39,29 +41,42 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
   }
 );
 
-const api = new RestApi(helloWorldLambdaStack, 'ApiGateway', {
-  restApiName: `api`,
-  description: 'API Gateway for Snowflake Connect Lambda',
+// 新しいAPIスタックを作成します。
+const apiStack = backend.createStack('api-stack');
+
+// API Gateway を作成します。
+const api = new RestApi(apiStack, 'ApiGateway', {
+  restApiName: 'myRestApi',
+  deploy: true,
+  deployOptions: {
+    stageName: 'dev',
+  },
+  defaultCorsPreflightOptions: {
+    allowOrigins: Cors.ALL_ORIGINS, // 信頼できるドメインに制限
+    allowMethods: Cors.ALL_METHODS, // 必要なメソッドのみ許可
+    allowHeaders: Cors.DEFAULT_HEADERS, // 必要なヘッダーのみ許可
+  },
 });
 
+// Cognito User Pools authorizer を作成します。
+const cognitoAuth = new CognitoUserPoolsAuthorizer(apiStack, 'CognitoAuth', {
+  cognitoUserPools: [backend.auth.resources.userPool],
+});
+
+// Lambda統合を作成します。
 const lambdaIntegration = new LambdaIntegration(helloWorldLambdaStack.snowflakeConnectLambda, {
   requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
 });
 
-// create a new Cognito User Pools authorizer
-const cognitoAuth = new CognitoUserPoolsAuthorizer(api, "CognitoAuth", {
-  cognitoUserPools: [backend.auth.resources.userPool],
-});
-
-// create a new resource path with Cognito authorization
-const resource = api.root.addResource('data');
-resource.addMethod('GET', lambdaIntegration, {
+// リソースパスを作成し、Cognito認証を追加します。
+const dataPath = api.root.addResource('data');
+dataPath.addMethod('GET', lambdaIntegration, {
   authorizationType: AuthorizationType.COGNITO,
   authorizer: cognitoAuth,
 });
 
 // OPTIONSメソッドの追加
-resource.addMethod('OPTIONS', new MockIntegration({
+dataPath.addMethod('OPTIONS', new MockIntegration({
   integrationResponses: [{
     statusCode: '200',
     responseParameters: {
@@ -78,8 +93,7 @@ resource.addMethod('OPTIONS', new MockIntegration({
   methodResponses: [{
     statusCode: '200',
     responseParameters: {
-      'method.response.header.Access-Control-Allow-Headers': true,
-      'method.response.header.Access-Control-Allow-Methods': true,
+      ' 'method.response.header.Access-Control-Allow-Methods': true,
       'method.response.header.Access-Control-Allow-Origin': true,
     },
   }],
