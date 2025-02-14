@@ -48,8 +48,17 @@ const lambdaIntegration = new LambdaIntegration(helloWorldLambdaStack.snowflakeC
   requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
 });
 
+// create a new Cognito User Pools authorizer
+const cognitoAuth = new CognitoUserPoolsAuthorizer(api, "CognitoAuth", {
+  cognitoUserPools: [backend.auth.resources.userPool],
+});
+
+// create a new resource path with Cognito authorization
 const resource = api.root.addResource('data');
-resource.addMethod('GET', lambdaIntegration);
+resource.addMethod('GET', lambdaIntegration, {
+  authorizationType: AuthorizationType.COGNITO,
+  authorizer: cognitoAuth,
+});
 
 // OPTIONSメソッドの追加
 resource.addMethod('OPTIONS', new MockIntegration({
