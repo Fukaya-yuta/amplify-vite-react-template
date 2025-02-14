@@ -1,5 +1,4 @@
 import { defineBackend } from '@aws-amplify/backend';
-import { Stack } from 'aws-cdk-lib';
 import {
   AuthorizationType,
   CognitoUserPoolsAuthorizer,
@@ -7,9 +6,7 @@ import {
   LambdaIntegration,
   RestApi,
   MockIntegration,
-  PassthroughBehavior,
 } from 'aws-cdk-lib/aws-apigateway';
-import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { HelloWorldLambdaStack } from './functions/helloworld/resources';
 import { auth } from './auth/resource';
 
@@ -83,7 +80,8 @@ dataPath.addMethod('OPTIONS', new MockIntegration({
       'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'",
       'method.response.header.Access-Control-Allow-Origin': "'*'",
-  },
+    },
+  }],
 }), {
   methodResponses: [{
     statusCode: '200',
@@ -93,7 +91,7 @@ dataPath.addMethod('OPTIONS', new MockIntegration({
       'method.response.header.Access-Control-Allow-Origin': true,
     },
   }],
-});
+}); // カンマを追加
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
