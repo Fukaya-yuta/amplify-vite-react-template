@@ -48,11 +48,6 @@ const api = new RestApi(apiStack, 'ApiGateway', {
   deployOptions: {
     stageName: 'dev',
   },
-  defaultCorsPreflightOptions: {
-    allowOrigins: Cors.ALL_ORIGINS, // 信頼できるドメインに制限
-    allowMethods: Cors.ALL_METHODS, // 必要なメソッドのみ許可
-    allowHeaders: Cors.DEFAULT_HEADERS, // 必要なヘッダーのみ許可
-  },
 });
 
 // Cognito User Pools authorizer を作成します。
@@ -72,7 +67,7 @@ dataPath.addMethod('GET', lambdaIntegration, {
   authorizer: cognitoAuth,
 });
 
-// OPTIONSメソッドの追加
+// OPTIONSメソッドを追加
 dataPath.addMethod('OPTIONS', new MockIntegration({
   integrationResponses: [{
     statusCode: '200',
@@ -91,7 +86,7 @@ dataPath.addMethod('OPTIONS', new MockIntegration({
       'method.response.header.Access-Control-Allow-Origin': true,
     },
   }],
-}); // カンマを追加
+});
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
