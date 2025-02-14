@@ -1,6 +1,15 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { HelloWorldLambdaStack } from './functions/helloworld/resources';
+import {
+  AuthorizationType,
+  CognitoUserPoolsAuthorizer,
+  Cors,
+  LambdaIntegration,
+  RestApi,
+  MockIntegration,
+  PassthroughBehavior,
+} from "aws-cdk-lib/aws-apigateway";
 
 const backend = defineBackend({
   auth,
@@ -30,9 +39,46 @@ const helloWorldLambdaStack = new HelloWorldLambdaStack(
   }
 );
 
+const api = new RestApi(helloWorldLambdaStack, 'ApiGateway', {
+  restApiName: `api`,
+  description: 'API Gateway for Snowflake Connect Lambda',
+});
+
+const lambdaIntegration = new LambdaIntegration(helloWorldLambdaStack.snowflakeConnectLambda, {
+  requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
+});
+
+const resource = api.root.addResource('data');
+resource.addMethod('GET', lambdaIntegration);
+
+// OPTIONSメソッドの追加
+resource.addMethod('OPTIONS', new MockIntegration({
+  integrationResponses: [{
+    statusCode: '200',
+    responseParameters: {
+      'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'",
+      'method.response.header.Access-Control-Allow-Origin': "'*'",
+    },
+  }],
+  passthroughBehavior: PassthroughBehavior.NEVER,
+  requestTemplates: {
+    'application/json': '{"statusCode": 200}',
+  },
+}), {
+  methodResponses: [{
+    statusCode: '200',
+    responseParameters: {
+      'method.response.header.Access-Control-Allow-Headers': true,
+      'method.response.header.Access-Control-Allow-Methods': true,
+      'method.response.header.Access-Control-Allow-Origin': true,
+    },
+  }],
+});
+
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
   custom: {
-    apiGatewayInvokeURL: helloWorldLambdaStack.api.url,
+    apiGatewayInvokeURL: api.url,
   },
 });

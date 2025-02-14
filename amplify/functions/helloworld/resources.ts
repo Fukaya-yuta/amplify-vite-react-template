@@ -4,7 +4,6 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 interface HelloWorldLambdaStackProps extends StackProps {
   projectName: string;
@@ -29,7 +28,6 @@ interface HelloWorldLambdaStackProps extends StackProps {
 
 export class HelloWorldLambdaStack extends Stack {
   public readonly snowflakeConnectLambda: lambda.Function;
-  public readonly api: apigateway.RestApi; // 追加
 
   constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
     super(scope, id, props);
@@ -98,51 +96,9 @@ export class HelloWorldLambdaStack extends Stack {
       allowPublicSubnet: true,
     });
 
-    this.api = new apigateway.RestApi(this, 'ApiGateway', {
-      restApiName: `${props.projectName}-${props.environment}-api`,
-      description: 'API Gateway for Snowflake Connect Lambda',
-    });
-
-    const lambdaIntegration = new apigateway.LambdaIntegration(this.snowflakeConnectLambda, {
-      requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
-    });
-
-    const resource = this.api.root.addResource('data');
-    resource.addMethod('GET', lambdaIntegration);
-
-    // OPTIONSメソッドの追加
-    resource.addMethod('OPTIONS', new apigateway.MockIntegration({
-      integrationResponses: [{
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-          'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'",
-          'method.response.header.Access-Control-Allow-Origin': "'*'",
-        },
-      }],
-      passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
-      requestTemplates: {
-        'application/json': '{"statusCode": 200}',
-      },
-    }), {
-      methodResponses: [{
-        statusCode: '200',
-        responseParameters: {
-          'method.response.header.Access-Control-Allow-Headers': true,
-          'method.response.header.Access-Control-Allow-Methods': true,
-          'method.response.header.Access-Control-Allow-Origin': true,
-        },
-      }],
-    });
-
     new CfnOutput(this, 'SnowflakeConnectLambdaArn', {
       value: this.snowflakeConnectLambda.functionArn,
       exportName: `${props.projectName}-${props.environment}-SnowflakeConnectLambdaArn`,
-    });
-
-    new CfnOutput(this, 'ApiGatewayInvokeURL', {
-      value: this.api.url,
-      exportName: `${props.projectName}-${props.environment}-ApiGatewayInvokeURL`,
     });
   }
 }
