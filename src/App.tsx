@@ -57,13 +57,15 @@ const App = () => {
     return (
         <Authenticator>
             {({ signOut, user }) => (
-        <div>
-            <h1>Welcome to My App</h1>
-            <p>API Endpoint: {apiEndpoint}</p>
-            <button onClick={fetchData}>Fetch Data</button>
-            {data && <pre>{data}</pre>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-        </div>
+                <div>
+                    <h1>Welcome to My App</h1>
+                    <p>API Endpoint: {apiEndpoint}</p>
+                    <button onClick={fetchData}>Fetch Data</button>
+                    {data && <pre>{data}</pre>}
+                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    <button onClick={signOut}>Sign Out</button>
+                    <p>User: {user?.username}</p>
+                </div>
             )}
         </Authenticator>
     );
