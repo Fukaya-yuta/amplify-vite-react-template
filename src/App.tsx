@@ -66,7 +66,6 @@ const App = () => {
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     <button onClick={signOut}>Sign Out</button>
                     <p>User: {user?.username}</p>
-                    <p>Access Token: {accessToken}</p>
                 </div>
             )}
         </Authenticator>
