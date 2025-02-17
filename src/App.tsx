@@ -14,11 +14,10 @@ const App = () => {
     const [session, setSessionResult] = useState<AuthSession>();
     const [accessToken, setAccessToken] = useState<string | null>(null);
 
+    const [session, setSessionResult] = useState<AuthSession>();
     const getCurrentUserAsync = async () => {
         const result = await fetchAuthSession();
         setSessionResult(result);
-        console.log("Session:", result); // セッション情報をログに出力
-        setAccessToken(result.tokens.accessToken.toString());
     };
 
     useEffect(() => {
