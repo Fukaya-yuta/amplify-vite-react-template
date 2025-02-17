@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
+import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
 import outputs from "../amplify_outputs.json";
-import { fetchAuthSession } from "aws-amplify/auth";
 
 Amplify.configure(outputs);
 
@@ -9,22 +9,29 @@ const App = () => {
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [session, setSessionResult] = useState<AuthSession>();
+
+    const getCurrentUserAsync = async () => {
+        const result = await fetchAuthSession();
+        setSessionResult(result);
+    };
 
     useEffect(() => {
         const endpoint = outputs.custom.apiGatewayInvokeURL;
         setApiEndpoint(endpoint);
+        getCurrentUserAsync();
     }, []);
 
     const fetchData = async () => {
         try {
-            const session = await fetchAuthSession();
-            const token = session.tokens.accessToken as string;
+            // アクセストークンを取得
+            const accessToken = session?.tokens?.accessToken.toString();
 
             const response = await fetch(`${apiEndpoint}/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${accessToken}`, // Authorizationヘッダーにアクセストークンを含める
                 },
             });
 
