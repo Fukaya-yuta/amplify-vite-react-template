@@ -18,13 +18,13 @@ const App = () => {
     const fetchData = async () => {
         try {
             const session = await fetchAuthSession();
-            const token = session.tokens.accessToken;
+            const token = session.tokens.accessToken as string;
 
             const response = await fetch(`${apiEndpoint}/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': token,
+                    'Authorization': `Bearer ${token}`,
                 },
             });
 
