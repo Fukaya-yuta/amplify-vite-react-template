@@ -12,10 +12,13 @@ const App = () => {
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [session, setSessionResult] = useState<AuthSession>();
+    const [accessToken, setAccessToken] = useState<string | null>(null);
 
     const getCurrentUserAsync = async () => {
         const result = await fetchAuthSession();
         setSessionResult(result);
+        console.log("Session:", result); // セッション情報をログに出力
+        setAccessToken(result.tokens.accessToken.toString());
     };
 
     useEffect(() => {
@@ -26,9 +29,6 @@ const App = () => {
 
     const fetchData = async () => {
         try {
-            // アクセストークンを取得
-            const accessToken = session?.tokens?.accessToken?.toString();
-
             if (!accessToken) {
                 throw new Error("アクセストークンが取得できませんでした。");
             }
@@ -65,6 +65,8 @@ const App = () => {
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     <button onClick={signOut}>Sign Out</button>
                     <p>User: {user?.username}</p>
+                    <p>Access Token: {accessToken}</p>
+                    <pre>Session: {JSON.stringify(session, null, 2)}</pre>
                 </div>
             )}
         </Authenticator>
