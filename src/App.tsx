@@ -8,6 +8,7 @@ import outputs from "../amplify_outputs.json";
 Amplify.configure(outputs);
 
 const App = () => {
+    const { signOut } = Authenticator();
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -55,6 +56,8 @@ const App = () => {
     };
 
     return (
+        <Authenticator>
+            {({ signOut, user }) => (
         <div>
             <h1>Welcome to My App</h1>
             <p>API Endpoint: {apiEndpoint}</p>
@@ -62,18 +65,9 @@ const App = () => {
             {data && <pre>{data}</pre>}
             {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
-    );
-};
-
-export default function App() {
-    return (
-        <Authenticator>
-            {({ signOut, user }) => (
-                <main>
-                    <h1>Hello {user?.username}</h1>
-                    <button onClick={signOut}>Sign out</button>
-                </main>
             )}
         </Authenticator>
     );
-}
+};
+
+export default App;
