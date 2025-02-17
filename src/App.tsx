@@ -8,7 +8,6 @@ import outputs from "../amplify_outputs.json";
 Amplify.configure(outputs);
 
 const App = () => {
-    const { signOut } = Authenticator();
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
