@@ -5,7 +5,6 @@ import {
   Cors,
   LambdaIntegration,
   RestApi,
-  //MockIntegration,
 } from 'aws-cdk-lib/aws-apigateway';
 import { HelloWorldLambdaStack } from './functions/helloworld/resources';
 import { auth } from './auth/resource';
