@@ -69,7 +69,6 @@ const App = () => {
                     <button onClick={signOut}>Sign Out</button>
                     <p>User: {user?.username}</p>
                     <p>Access Token: {accessToken}</p>
-                    <pre>Session: {JSON.stringify(session, null, 2)}</pre>
                 </div>
             )}
         </Authenticator>
