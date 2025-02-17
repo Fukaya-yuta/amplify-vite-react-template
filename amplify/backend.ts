@@ -48,6 +48,11 @@ const api = new RestApi(apiStack, 'ApiGateway', {
   deployOptions: {
     stageName: 'dev',
   },
+  defaultCorsPreflightOptions: {
+    allowOrigins: Cors.ALL_ORIGINS, // Restrict this to domains you trust
+    allowMethods: Cors.ALL_METHODS, // Specify only the methods you need to allow
+    allowHeaders: Cors.DEFAULT_HEADERS, // Specify only the headers you need to allow
+  },
 });
 
 // Cognito User Pools authorizer を作成します。
@@ -65,14 +70,6 @@ const dataPath = api.root.addResource('data');
 dataPath.addMethod('GET', lambdaIntegration, {
   authorizationType: AuthorizationType.COGNITO,
   authorizer: cognitoAuth,
-  methodResponses: [{
-    statusCode: '200',
-    responseParameters: {
-      'method.response.header.Access-Control-Allow-Headers': true,
-      'method.response.header.Access-Control-Allow-Methods': true,
-      'method.response.header.Access-Control-Allow-Origin': true,
-    },
-  }],
 });
 
 // OPTIONSメソッドを追加
