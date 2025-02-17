@@ -82,16 +82,8 @@ dataPath.addMethod('OPTIONS', new MockIntegration({
       'method.response.header.Access-Control-Allow-Origin': "'*'",
     },
   }],
-}), {
-  methodResponses: [{
-    statusCode: '200',
-    responseParameters: {
-      'method.response.header.Access-Control-Allow-Headers': true,
-      'method.response.header.Access-Control-Allow-Methods': true,
-      'method.response.header.Access-Control-Allow-Origin': true,
-    },
-  }],
-});
+}),
+);
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
