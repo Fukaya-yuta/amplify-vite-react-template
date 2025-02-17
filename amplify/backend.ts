@@ -5,7 +5,7 @@ import {
   Cors,
   LambdaIntegration,
   RestApi,
-  MockIntegration,
+  //MockIntegration,
 } from 'aws-cdk-lib/aws-apigateway';
 import { HelloWorldLambdaStack } from './functions/helloworld/resources';
 import { auth } from './auth/resource';
@@ -49,9 +49,9 @@ const api = new RestApi(apiStack, 'ApiGateway', {
     stageName: 'dev',
   },
   defaultCorsPreflightOptions: {
-    allowOrigins: Cors.ALL_ORIGINS, // Restrict this to domains you trust
-    allowMethods: Cors.ALL_METHODS, // Specify only the methods you need to allow
-    allowHeaders: Cors.DEFAULT_HEADERS, // Specify only the headers you need to allow
+    allowOrigins: Cors.ALL_ORIGINS,
+    allowMethods: Cors.ALL_METHODS,
+    allowHeaders: Cors.DEFAULT_HEADERS,
   },
 });
 
@@ -71,19 +71,6 @@ dataPath.addMethod('GET', lambdaIntegration, {
   authorizationType: AuthorizationType.COGNITO,
   authorizer: cognitoAuth,
 });
-
-// OPTIONSメソッドを追加
-dataPath.addMethod('OPTIONS', new MockIntegration({
-  integrationResponses: [{
-    statusCode: '200',
-    responseParameters: {
-      'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'",
-      'method.response.header.Access-Control-Allow-Origin': "'*'",
-    },
-  }],
-}),
-);
 
 // API GatewayのAPI URLをamplify_outputs.jsonに出力
 backend.addOutput({
