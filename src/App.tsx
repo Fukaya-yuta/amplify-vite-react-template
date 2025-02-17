@@ -25,7 +25,11 @@ const App = () => {
     const fetchData = async () => {
         try {
             // アクセストークンを取得
-            const accessToken = session?.tokens?.accessToken.toString();
+            const accessToken = session?.tokens?.accessToken?.toString();
+
+            if (!accessToken) {
+                throw new Error("アクセストークンが取得できませんでした。");
+            }
 
             const response = await fetch(`${apiEndpoint}/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`, {
                 method: 'GET',
