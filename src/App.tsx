@@ -11,12 +11,10 @@ const App = () => {
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [session, setSessionResult] = useState<AuthSession | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
 
     const getCurrentUserAsync = async () => {
         const result = await fetchAuthSession();
-        setSessionResult(result);
         if (result.tokens) {
             setAccessToken(result.tokens.accessToken.toString());
         } else {
