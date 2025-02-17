@@ -65,6 +65,12 @@ const dataPath = api.root.addResource('data');
 dataPath.addMethod('GET', lambdaIntegration, {
   authorizationType: AuthorizationType.COGNITO,
   authorizer: cognitoAuth,
+  methodResponses: [{
+    statusCode: '200',
+    responseParameters: {
+      'method.response.header.Access-Control-Allow-Origin': true,
+    },
+  }],
 });
 
 // OPTIONSメソッドを追加
