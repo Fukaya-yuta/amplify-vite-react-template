@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
-import Auth from "@aws-amplify/auth";
 import outputs from "../amplify_outputs.json";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 Amplify.configure(outputs);
 
@@ -17,14 +17,14 @@ const App = () => {
 
     const fetchData = async () => {
         try {
-            const session = await Auth.currentSession();
-            const idToken = session.getIdToken().getJwtToken();
+            const session = await fetchAuthSession();
+            const token = session.tokens.accessToken;
 
             const response = await fetch(`${apiEndpoint}/data?client_id=client_0001&data_name=TEMPERATURE&period=24hours`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': idToken, // Add the Authorization header with the id token
+                    'Authorization': token,
                 },
             });
 
