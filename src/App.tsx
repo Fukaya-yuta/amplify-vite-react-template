@@ -11,14 +11,18 @@ const App = () => {
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [idToken, setidToken] = useState<string | null>(null);
+    const [idToken, setIdToken] = useState<string | null>(null);
 
     const getCurrentUserAsync = async () => {
-        const result = await fetchAuthSession();
-        if (result.tokens) {
-            setidToken(result.tokens.idToken.toString());
-        } else {
-            console.error("Tokens are undefined");
+        try {
+            const result = await fetchAuthSession();
+            if (result && result.tokens && result.tokens.idToken) {
+                setIdToken(result.tokens.idToken.toString());
+            } else {
+                console.error("Tokens are undefined");
+            }
+        } catch (err) {
+            console.error("Error fetching auth session:", err);
         }
     };
 
