@@ -11,12 +11,12 @@ const App = () => {
     const [apiEndpoint, setApiEndpoint] = useState("");
     const [data, setData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [idToken, setidToken] = useState<string | null>(null);
 
     const getCurrentUserAsync = async () => {
         const result = await fetchAuthSession();
         if (result.tokens) {
-            setAccessToken(result.tokens.accessToken.toString());
+            setidToken(result.tokens.idToken.toString());
         } else {
             console.error("Tokens are undefined");
         }
@@ -30,7 +30,7 @@ const App = () => {
 
     const fetchData = async () => {
         try {
-            if (!accessToken) {
+            if (!idToken) {
                 throw new Error("アクセストークンが取得できませんでした。");
             }
 
@@ -38,7 +38,7 @@ const App = () => {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`, // Authorizationヘッダーにアクセストークンを含める
+                    'Authorization': `Bearer ${idToken}`, // Authorizationヘッダーにアクセストークンを含める
                 },
             });
 
