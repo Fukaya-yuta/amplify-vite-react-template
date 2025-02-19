@@ -1,4 +1,4 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Stack, StackProps, Fn } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
@@ -16,10 +16,16 @@ export class SecurityGroupStack extends Stack {
   constructor(scope: Construct, id: string, props: SecurityGroupStackProps) {
     super(scope, id, props);
 
-    //Import the VPC
-    const vpc = ec2.Vpc.fromLookup(this, 'VPC', {
-      vpcId: props.VPCID
-    });
+    // Import the VPC - Remove Vpc.fromLookup
+    // const vpc = ec2.Vpc.fromLookup(this, 'VPC', {
+    //   vpcId: props.VPCID
+    // });
+    const vpc = ec2.Vpc.fromVpcAttributes(this, 'VPC', {
+        vpcId: props.VPCID,
+        availabilityZones: [Fn.select(0, Fn.getAzs(Stack.of(this).region)),
+                            Fn.select(1, Fn.getAzs(Stack.of(this).region))],
+        privateSubnetIds: []
+    })
 
     const lambdaSG = new ec2.SecurityGroup(this, 'LambdaSG', {
       securityGroupName: `${props.projectName}-${props.environment}-lambda-sg`,

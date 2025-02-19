@@ -41,8 +41,8 @@ const helloWorldLambdaStack = new LambdaStack(
   backend.createStack('LambdaStack'), 'LambdaResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
-    lambdaProtectedSubnet1: vpcStack.lambdaProtectedSubnet1.subnetId, // VPC StackからSubnet IDを取得
-    lambdaProtectedSubnet2: vpcStack.lambdaProtectedSubnet2.subnetId, // VPC StackからSubnet IDを取得
+    lambdaProtectedSubnet1: vpcStack.lambdaProtectedSubnet1Id, // VPC StackからSubnet IDを取得
+    lambdaProtectedSubnet2: vpcStack.lambdaProtectedSubnet2Id, // VPC StackからSubnet IDを取得
     lambdaSecurityGroupID: securityGroupStack.lambdaSgId, // Security Group StackからSecurity Group IDを取得
     lambdaArchiveBucketName: 'wireless-sensing-poc-lambda-archive-ap-northeast-1',
     lambdaArchiveBucketObjectKey: 'lambda_for_snowflake_connect/lambda_function.zip',
