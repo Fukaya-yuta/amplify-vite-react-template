@@ -8,18 +8,42 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { LambdaStack } from './functions/lambda/resources';
 import { auth } from './auth/resource';
+import { VpcStack } from './vpc/vpc-stack';
+import { SecurityGroupStack } from './sg/sg-stack';
 
 const backend = defineBackend({
   auth,
 });
 
+// VPC Stackの定義
+const vpcStack = new VpcStack(backend.createStack('VpcStack'), 'VpcResource', {
+    projectName: 'c-elect-meg-cloud',
+    environment: 'poc',
+    VPCCIDR: '172.17.0.0/16',
+    NATPublicSubnetCIDR1: '172.17.0.0/24',
+    NATPublicSubnetCIDR2: '172.17.1.0/24',
+    LambdaProtectedSubnetCIDR1: '172.17.2.0/24',
+    LambdaProtectedSubnetCIDR2: '172.17.3.0/24',
+    VPCFlowLogsRetainInDays: 30,
+  }
+);
+
+// Security Group Stackの定義
+const securityGroupStack = new SecurityGroupStack(backend.createStack('SecurityGroupStack'), 'SecurityGroupResource', {
+    projectName: 'c-elect-meg-cloud',
+    environment: 'poc',
+    VPCID: vpcStack.vpcId, // VPC StackからVPC IDを取得
+    NATGatewayCIDR: '172.17.0.0/23',
+  }
+);
+
 const helloWorldLambdaStack = new LambdaStack(
   backend.createStack('LambdaStack'), 'LambdaResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
-    lambdaProtectedSubnet1: 'subnet-051a99ad5edb338a1',
-    lambdaProtectedSubnet2: 'subnet-08809bd4cc0d61ae6',
-    lambdaSecurityGroupID: 'sg-043e1d90db0533260',
+    lambdaProtectedSubnet1: vpcStack.lambdaProtectedSubnet1.subnetId, // VPC StackからSubnet IDを取得
+    lambdaProtectedSubnet2: vpcStack.lambdaProtectedSubnet2.subnetId, // VPC StackからSubnet IDを取得
+    lambdaSecurityGroupID: securityGroupStack.lambdaSgId, // Security Group StackからSecurity Group IDを取得
     lambdaArchiveBucketName: 'wireless-sensing-poc-lambda-archive-ap-northeast-1',
     lambdaArchiveBucketObjectKey: 'lambda_for_snowflake_connect/lambda_function.zip',
     lambdaArchiveObjectVersionID: '385Q2wcOZweFiJzbhH0WtL.iwD8GUqNb',
