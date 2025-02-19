@@ -5,7 +5,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
-interface HelloWorldLambdaStackProps extends StackProps {
+interface LambdaStackProps extends StackProps {
   projectName: string;
   environment: string;
   lambdaProtectedSubnet1: string;
@@ -26,10 +26,10 @@ interface HelloWorldLambdaStackProps extends StackProps {
   ssmParameterNameForSnowflakeSchema: string;
 }
 
-export class HelloWorldLambdaStack extends Stack {
+export class LambdaStack extends Stack {
   public readonly snowflakeConnectLambda: lambda.Function;
 
-  constructor(scope: Construct, id: string, props: HelloWorldLambdaStackProps) {
+  constructor(scope: Construct, id: string, props: LambdaStackProps) {
     super(scope, id, props);
 
     const lambdaRole = new iam.Role(this, 'SnowflakeConnectLambdaRole', {

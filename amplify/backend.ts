@@ -6,16 +6,15 @@ import {
   LambdaIntegration,
   RestApi,
 } from 'aws-cdk-lib/aws-apigateway';
-import { HelloWorldLambdaStack } from './functions/helloworld/resources';
+import { LambdaStack } from './functions/lambda/resources';
 import { auth } from './auth/resource';
 
 const backend = defineBackend({
   auth,
 });
 
-// バックエンドに HelloWorld カスタム Lambda スタックを追加します。
-const helloWorldLambdaStack = new HelloWorldLambdaStack(
-  backend.createStack('HelloWorldLambdaStack'), 'helloWorldLambdaResource', {
+const helloWorldLambdaStack = new LambdaStack(
+  backend.createStack('LambdaStack'), 'LambdaResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
     lambdaProtectedSubnet1: 'subnet-051a99ad5edb338a1',
