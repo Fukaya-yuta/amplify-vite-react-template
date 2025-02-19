@@ -19,11 +19,11 @@ const backend = defineBackend({
 const vpcStack = new VpcStack(backend.createStack('VpcStack'), 'VpcResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
-    VPCCIDR: '172.17.0.0/16',
-    NATPublicSubnetCIDR1: '172.17.0.0/24',
-    NATPublicSubnetCIDR2: '172.17.1.0/24',
-    LambdaProtectedSubnetCIDR1: '172.17.2.0/24',
-    LambdaProtectedSubnetCIDR2: '172.17.3.0/24',
+    VPCCIDR: '172.16.0.0/16',
+    NATPublicSubnetCIDR1: '172.16.0.0/24',
+    NATPublicSubnetCIDR2: '172.16.1.0/24',
+    LambdaProtectedSubnetCIDR1: '172.16.2.0/24',
+    LambdaProtectedSubnetCIDR2: '172.16.3.0/24',
     VPCFlowLogsRetainInDays: 30,
   }
 );
@@ -33,7 +33,7 @@ const securityGroupStack = new SecurityGroupStack(backend.createStack('SecurityG
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
     VPCID: vpcStack.vpcId, // VPC StackからVPC IDを取得
-    NATGatewayCIDR: '172.17.0.0/23',
+    NATGatewayCIDR: '172.16.0.0/23',
   }
 );
 
