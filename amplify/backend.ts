@@ -60,10 +60,8 @@ const helloWorldLambdaStack = new LambdaStack(
   }
 );
 
-// 新しいAPIスタックを作成します。
-const apiStack = backend.createStack('api-stack');
-
 // API Gateway を作成します。
+const apiStack = backend.createStack('api-stack');
 const api = new RestApi(apiStack, 'ApiGateway', {
   restApiName: 'myRestApi',
   deploy: true,
