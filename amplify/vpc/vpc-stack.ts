@@ -1,4 +1,5 @@
-import { Stack, StackProps, CfnOutput, Fn, Tags, Duration, aws_cdk as cdk } from 'aws-cdk-lib';
+import { Stack, StackProps, CfnOutput, Fn, Tags, Duration } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as logs from 'aws-cdk-lib/aws-logs';
