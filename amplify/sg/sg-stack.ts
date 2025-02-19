@@ -16,10 +16,6 @@ export class SecurityGroupStack extends Stack {
   constructor(scope: Construct, id: string, props: SecurityGroupStackProps) {
     super(scope, id, props);
 
-    // Import the VPC - Remove Vpc.fromLookup
-    // const vpc = ec2.Vpc.fromLookup(this, 'VPC', {
-    //   vpcId: props.VPCID
-    // });
     const vpc = ec2.Vpc.fromVpcAttributes(this, 'VPC', {
         vpcId: props.VPCID,
         availabilityZones: [Fn.select(0, Fn.getAzs(Stack.of(this).region)),
@@ -34,7 +30,8 @@ export class SecurityGroupStack extends Stack {
       allowAllOutbound: true,
     });
 
-    lambdaSG.addIngressRule(ec2.Peer.prefixList('pl-68a54001'), ec2.Port.tcp(443));
+    // Prefix Listの代わりにNATGatewayCIDRからのインバウンドを許可
+    lambdaSG.addIngressRule(ec2.Peer.ipv4(props.NATGatewayCIDR), ec2.Port.tcp(443), 'Allow inbound from NAT Gateway');
 
     this.lambdaSgId = lambdaSG.securityGroupId;
     this.lambdaSg = lambdaSG;
