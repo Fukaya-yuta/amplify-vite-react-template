@@ -37,7 +37,7 @@ const securityGroupStack = new SecurityGroupStack(backend.createStack('SecurityG
   }
 );
 
-const helloWorldLambdaStack = new LambdaStack(
+const lambdaStack = new LambdaStack(
   backend.createStack('LambdaStack'), 'LambdaResource', {
     projectName: 'c-elect-meg-cloud',
     environment: 'poc',
@@ -45,8 +45,8 @@ const helloWorldLambdaStack = new LambdaStack(
     //lambdaProtectedSubnet2: vpcStack.lambdaProtectedSubnet2Id, // VPC StackからSubnet IDを取得
     //lambdaSecurityGroupID: securityGroupStack.lambdaSgId, // Security Group StackからSecurity Group IDを取得
     lambdaProtectedSubnet1: 'subnet-051a99ad5edb338a1',
-    lambdaProtectedSubnet2: 'subnet-08809bd4cc0d61ae6', // VPC StackからSubnet IDを取得
-    lambdaSecurityGroupID: 'sg-043e1d90db0533260', // Security Group StackからSecurity Group IDを取得
+    lambdaProtectedSubnet2: 'subnet-08809bd4cc0d61ae6',
+    lambdaSecurityGroupID: 'sg-043e1d90db0533260',
     lambdaArchiveBucketName: 'wireless-sensing-poc-lambda-archive-ap-northeast-1',
     lambdaArchiveBucketObjectKey: 'lambda_for_snowflake_connect/lambda_function.zip',
     lambdaArchiveObjectVersionID: '385Q2wcOZweFiJzbhH0WtL.iwD8GUqNb',
@@ -84,7 +84,7 @@ const cognitoAuth = new CognitoUserPoolsAuthorizer(apiStack, 'CognitoAuth', {
 });
 
 // Lambda統合を作成します。
-const lambdaIntegration = new LambdaIntegration(helloWorldLambdaStack.snowflakeConnectLambda, {
+const lambdaIntegration = new LambdaIntegration(lambdaStack.snowflakeConnectLambda, {
   requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
 });
 
