@@ -71,7 +71,8 @@ export class VpcStack extends Stack {
                 'logs:DescribeLogStreams',
             ],
             resources: [vpcFlowLogGroup.logGroupArn + ':*'],
-        });
+        }));
+
         new ec2.FlowLog(this, 'VPCFlowLogToCWLog', {
             resourceType: ec2.FlowLogResourceType.fromVpc(vpc),
             trafficType: ec2.FlowLogTrafficType.ALL,
