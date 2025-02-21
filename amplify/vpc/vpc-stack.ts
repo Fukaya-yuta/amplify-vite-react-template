@@ -51,199 +51,172 @@ export class VpcStack extends Stack {
         internetGatewayId: internetGateway.ref,
     });
 
-    // VPC Flow Logs
-    const vpcFlowLogGroup = new logs.LogGroup(this, 'VPCFlowLogGroup', {
-        logGroupName: `/aws/vpc/flowlogs/${props.projectName}-${props.environment}-vpc`,
-        retention: props.VPCFlowLogsRetainInDays,
-    });
+    // VPC Flow Logs (prd環境のみ)
+    if (props.environment === 'prd') {
+        const vpcFlowLogGroup = new logs.LogGroup(this, 'VPCFlowLogGroup', {
+            logGroupName: `/aws/vpc/flowlogs/${props.projectName}-${props.environment}-vpc`,
+            retention: props.VPCFlowLogsRetainInDays,
+        });
+        const vpcFlowLogsRoleForCWLogs = new iam.Role(this, 'VPCFlowLogsRoleForCWLogs', {
+            roleName: `VPCFlowLogsRoleForCWLogs-${props.projectName}-${props.environment}`,
+            assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
+        });
+        vpcFlowLogsRoleForCWLogs.addToPolicy(new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: [
+                'logs:CreateLogGroup',
+                'logs:CreateLogStream',
+                'logs:PutLogEvents',
+                'logs:DescribeLogGroups',
+                'logs:DescribeLogStreams',
+            ],
+            resources: [vpcFlowLogGroup.logGroupArn + ':*'],
+        });
+        new ec2.FlowLog(this, 'VPCFlowLogToCWLog', {
+            resourceType: ec2.FlowLogResourceType.fromVpc(vpc),
+            trafficType: ec2.FlowLogTrafficType.ALL,
+            destination: ec2.FlowLogDestination.toCloudWatchLogs(vpcFlowLogGroup, vpcFlowLogsRoleForCWLogs),
+        });
+        // S3 Bucket for Flow Logs
+        const vpcFlowLogBucket = new s3.Bucket(this, 'VPCFlowLogBucket', {
+            bucketName: `${props.projectName}-${props.environment}-vpc-flowlogs`,
+            encryption: s3.BucketEncryption.S3_MANAGED,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            lifecycleRules: [
+                {
+                    transitions: [
+                        {
+                            storageClass: s3.StorageClass.GLACIER,
+                            transitionAfter: Duration.days(365),
+                        },
+                    ],
+                    expiration: cdk.Duration.days(1825),
+                    enabled: true,
+                },
+            ],
+        });
+        new ec2.FlowLog(this, 'VPCFlowLogsToS3', {
+            resourceType: ec2.FlowLogResourceType.fromVpc(vpc),
+            trafficType: ec2.FlowLogTrafficType.ALL,
+            destination: ec2.FlowLogDestination.toS3(vpcFlowLogBucket),
+        });
+    }
 
-    const vpcFlowLogsRoleForCWLogs = new iam.Role(this, 'VPCFlowLogsRoleForCWLogs', {
-        roleName: `VPCFlowLogsRoleForCWLogs-${props.projectName}-${props.environment}`,
-        assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
-    });
+        // NAT Gateway Subnets and NAT Gateways
+        const natPublicSubnets = [];
+        const natGateways = [];  // NATゲートウェイを格納する配列を追加
+        const numNatGateways = props.environment === 'prd' ? 2 : 1;
 
-    vpcFlowLogsRoleForCWLogs.addToPolicy(new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: [
-            'logs:CreateLogGroup',
-            'logs:CreateLogStream',
-            'logs:PutLogEvents',
-            'logs:DescribeLogGroups',
-            'logs:DescribeLogStreams',
-        ],
-        resources: [vpcFlowLogGroup.logGroupArn + ':*'],
-    }));
-
-    const vpcFlowLogToCWLog = new ec2.FlowLog(this, 'VPCFlowLogToCWLog', {
-        resourceType: ec2.FlowLogResourceType.fromVpc(vpc),
-        trafficType: ec2.FlowLogTrafficType.ALL,
-        destination: ec2.FlowLogDestination.toCloudWatchLogs(vpcFlowLogGroup, vpcFlowLogsRoleForCWLogs),
-    });
-
-    // S3 Bucket for Flow Logs
-    const vpcFlowLogBucket = new s3.Bucket(this, 'VPCFlowLogBucket', {
-        bucketName: `${props.projectName}-${props.environment}-vpc-flowlogs`,
-        encryption: s3.BucketEncryption.S3_MANAGED,
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-        lifecycleRules: [{
-            transitions: [{
-                storageClass: s3.StorageClass.GLACIER,
-                transitionAfter: Duration.days(365),
-            }],
-            expiration: cdk.Duration.days(1825),
-            enabled: true,
-        }],
-    });
-
-    const vpcFlowLogsToS3 = new ec2.FlowLog(this, 'VPCFlowLogsToS3', {
-        resourceType: ec2.FlowLogResourceType.fromVpc(vpc),
-        trafficType: ec2.FlowLogTrafficType.ALL,
-        destination: ec2.FlowLogDestination.toS3(vpcFlowLogBucket),
-    });
-
-    // NAT Gateway Subnets and NAT Gateways
-    const natPublicSubnet1 = new ec2.Subnet(this, 'NATPublicSubnet1', {
-        vpcId: vpc.vpcId,
-        cidrBlock: props.NATPublicSubnetCIDR1,
-        availabilityZone: cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
-        mapPublicIpOnLaunch: false,
-    });
-
-    Tags.of(natPublicSubnet1).add('Name', `${props.projectName}-${props.environment}-pub-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(natPublicSubnet1).add('ProjectName', props.projectName);
-    Tags.of(natPublicSubnet1).add('Environment', props.environment);
-
-    const natGatewayEIP1 = new ec2.CfnEIP(this, 'NATGatewayEIP1', {
-        domain: 'vpc',
-        tags: [ { key: 'Name', value: `${props.projectName}-${props.environment}-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}-eip` },
+        for (let i = 0; i < numNatGateways; i++) {
+            const natPublicSubnet = new ec2.Subnet(this, `NATPublicSubnet${i + 1}`, {
+                vpcId: vpc.vpcId,
+                cidrBlock: i === 0 ? props.NATPublicSubnetCIDR1 : props.NATPublicSubnetCIDR2,
+                availabilityZone: cdk.Fn.select(i, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
+                mapPublicIpOnLaunch: false,
+            });
+            Tags.of(natPublicSubnet).add('Name', `${props.projectName}-${props.environment}-pub-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(i, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
+            Tags.of(natPublicSubnet).add('ProjectName', props.projectName);
+            Tags.of(natPublicSubnet).add('Environment', props.environment);
+            const natGatewayEIP = new ec2.CfnEIP(this, `NATGatewayEIP${i + 1}`, {
+                domain: 'vpc',
+                tags: [{ key: 'Name', value: `${props.projectName}-${props.environment}-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(i, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}-eip` },
                 { key: 'ProjectName', value: props.projectName },
-                { key: 'Environment', value: props.environment } ],
-    });
+                { key: 'Environment', value: props.environment }],
+            });
+            const natGateway = new ec2.CfnNatGateway(this, `NATGateway${i + 1}`, {
+                subnetId: natPublicSubnet.subnetId,
+                allocationId: natGatewayEIP.attrAllocationId,
+            });
+            Tags.of(natGateway).add('Name', `${props.projectName}-${props.environment}-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(i, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
+            Tags.of(natGateway).add('ProjectName', props.projectName);
+            Tags.of(natGateway).add('Environment', props.environment);
+            natPublicSubnets.push(natPublicSubnet);
+            natGateways.push(natGateway); // 作成したNATゲートウェイを配列に格納
+        }
 
-    const natGateway1 = new ec2.CfnNatGateway(this, 'NATGateway1', {
-        subnetId: natPublicSubnet1.subnetId,
-        allocationId: natGatewayEIP1.attrAllocationId,
-    });
-    Tags.of(natGateway1).add('Name', `${props.projectName}-${props.environment}-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(natGateway1).add('ProjectName', props.projectName);
-    Tags.of(natGateway1).add('Environment', props.environment);
+        // Protected Subnets and Route Tables
+        const lambdaProtectedSubnet1 = new ec2.Subnet(this, 'LambdaProtectedSubnet1', {
+            vpcId: vpc.vpcId,
+            cidrBlock: props.LambdaProtectedSubnetCIDR1,
+            availabilityZone: cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
+            mapPublicIpOnLaunch: false,
+        });
+        Tags.of(lambdaProtectedSubnet1).add('Name', `${props.projectName}-${props.environment}-prot-lambda-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
+        Tags.of(lambdaProtectedSubnet1).add('ProjectName', props.projectName);
+        Tags.of(lambdaProtectedSubnet1).add('Environment', props.environment);
+        const protectedRouteTable1 = new ec2.CfnRouteTable(this, 'ProtectedRouteTable1', {
+            vpcId: vpc.vpcId,
+        });
+        Tags.of(protectedRouteTable1).add('Name', `${props.projectName}-${props.environment}-protected-rtb-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
+        Tags.of(protectedRouteTable1).add('ProjectName', props.projectName);
+        Tags.of(protectedRouteTable1).add('Environment', props.environment);
+        new ec2.CfnSubnetRouteTableAssociation(this, 'LambdaProtectedSubnetAssociation1', {
+            subnetId: lambdaProtectedSubnet1.subnetId,
+            routeTableId: protectedRouteTable1.ref,
+        });
+        const protectedRouteTable2 = new ec2.CfnRouteTable(this, 'ProtectedRouteTable2', {
+            vpcId: vpc.vpcId,
+        });
+        Tags.of(protectedRouteTable2).add('Name', `${props.projectName}-${props.environment}-protected-rtb-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
+        Tags.of(protectedRouteTable2).add('ProjectName', props.projectName);
+        Tags.of(protectedRouteTable2).add('Environment', props.environment);
+        const lambdaProtectedSubnet2 = new ec2.Subnet(this, 'LambdaProtectedSubnet2', {
+            vpcId: vpc.vpcId,
+            cidrBlock: props.LambdaProtectedSubnetCIDR2,
+            availabilityZone: cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
+            mapPublicIpOnLaunch: false,
+        });
+        Tags.of(lambdaProtectedSubnet2).add('Name', `${props.projectName}-${props.environment}-prot-lambda-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
+        Tags.of(lambdaProtectedSubnet2).add('ProjectName', props.projectName);
+        Tags.of(lambdaProtectedSubnet2).add('Environment', props.environment);
+        new ec2.CfnSubnetRouteTableAssociation(this, 'LambdaProtectedSubnetAssociation2', {
+            subnetId: lambdaProtectedSubnet2.subnetId,
+            routeTableId: protectedRouteTable2.ref,
+        });
 
-    const natPublicSubnet2 = new ec2.Subnet(this, 'NATPublicSubnet2', {
-        vpcId: vpc.vpcId,
-        cidrBlock: props.NATPublicSubnetCIDR2,
-        availabilityZone: cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
-        mapPublicIpOnLaunch: false,
-    });
+        // Public Route Table
+        const publicRouteTable = new ec2.CfnRouteTable(this, 'PublicRouteTable', {
+            vpcId: vpc.vpcId,
+        });
+        Tags.of(publicRouteTable).add('Name', `${props.projectName}-${props.environment}-public-rtb`);
+        Tags.of(publicRouteTable).add('ProjectName', props.projectName);
+        Tags.of(publicRouteTable).add('Environment', props.environment);
+        new ec2.CfnRoute(this, 'PublicRoute', {
+            routeTableId: publicRouteTable.attrRouteTableId,
+            destinationCidrBlock: '0.0.0.0/0',
+            gatewayId: internetGateway.ref,
+        }).addDependency(internetGatewayAttachment);
 
-    Tags.of(natPublicSubnet2).add('Name', `${props.projectName}-${props.environment}-pub-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(natPublicSubnet2).add('ProjectName', props.projectName);
-    Tags.of(natPublicSubnet2).add('Environment', props.environment);
+        new ec2.CfnSubnetRouteTableAssociation(this, 'NATGatewayPublicSubnetAssociation1', {
+            subnetId: natPublicSubnets[0].subnetId,
+            routeTableId: publicRouteTable.attrRouteTableId,
+        });
 
-    const natGatewayEIP2 = new ec2.CfnEIP(this, 'NATGatewayEIP2', {
-        domain: 'vpc',
-        tags: [ { key: 'Name', value: `${props.projectName}-${props.environment}-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}-eip` },
-                { key: 'ProjectName', value: props.projectName },
-                { key: 'Environment', value: props.environment } ],
-    });
+        if (numNatGateways > 1) {  // NATゲートウェイが2つの場合のみ関連付け
+            new ec2.CfnSubnetRouteTableAssociation(this, 'NATGatewayPublicSubnetAssociation2', {
+                subnetId: natPublicSubnets[1].subnetId,
+                routeTableId: publicRouteTable.attrRouteTableId,
+            });
+        }
 
-    const natGateway2 = new ec2.CfnNatGateway(this, 'NATGateway2', {
-        subnetId: natPublicSubnet2.subnetId,
-        allocationId: natGatewayEIP2.attrAllocationId,
-    });
-    Tags.of(natGateway2).add('Name', `${props.projectName}-${props.environment}-natgw-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(natGateway2).add('ProjectName', props.projectName);
-    Tags.of(natGateway2).add('Environment', props.environment);
+        new ec2.CfnRoute(this, 'NATGatewayAssociationForProtectedRoute1', {
+            routeTableId: protectedRouteTable1.attrRouteTableId,
+            destinationCidrBlock: '0.0.0.0/0',
+            natGatewayId: natGateways[0].attrNatGatewayId,  // 最初のNATゲートウェイを使用
+        });
 
-    // Protected Subnets and Route Tables
-    const lambdaProtectedSubnet1 = new ec2.Subnet(this, 'LambdaProtectedSubnet1', {
-        vpcId: vpc.vpcId,
-        cidrBlock: props.LambdaProtectedSubnetCIDR1,
-        availabilityZone: cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
-        mapPublicIpOnLaunch: false,
-    });
+        if (numNatGateways > 1) {  // NATゲートウェイが2つの場合のみルートを追加
+            new ec2.CfnRoute(this, 'NATGatewayAssociationForProtectedRoute2', {
+                routeTableId: protectedRouteTable2.attrRouteTableId,
+                destinationCidrBlock: '0.0.0.0/0',
+                natGatewayId: natGateways[1].attrNatGatewayId,  // 2番目のNATゲートウェイを使用
+            });
+        }
 
-    Tags.of(lambdaProtectedSubnet1).add('Name', `${props.projectName}-${props.environment}-prot-lambda-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(lambdaProtectedSubnet1).add('ProjectName', props.projectName);
-    Tags.of(lambdaProtectedSubnet1).add('Environment', props.environment);
-
-    const protectedRouteTable1 = new ec2.CfnRouteTable(this, 'ProtectedRouteTable1', {
-        vpcId: vpc.vpcId,
-    });
-
-    Tags.of(protectedRouteTable1).add('Name', `${props.projectName}-${props.environment}-protected-rtb-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(0, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(protectedRouteTable1).add('ProjectName', props.projectName);
-    Tags.of(protectedRouteTable1).add('Environment', props.environment);
-
-    new ec2.CfnSubnetRouteTableAssociation(this, 'LambdaProtectedSubnetAssociation1', {
-        subnetId: lambdaProtectedSubnet1.subnetId,
-        routeTableId: protectedRouteTable1.ref,
-    });
-
-    const protectedRouteTable2 = new ec2.CfnRouteTable(this, 'ProtectedRouteTable2', {
-        vpcId: vpc.vpcId,
-    });
-
-    Tags.of(protectedRouteTable2).add('Name', `${props.projectName}-${props.environment}-protected-rtb-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(protectedRouteTable2).add('ProjectName', props.projectName);
-    Tags.of(protectedRouteTable2).add('Environment', props.environment);
-
-    const lambdaProtectedSubnet2 = new ec2.Subnet(this, 'LambdaProtectedSubnet2', {
-        vpcId: vpc.vpcId,
-        cidrBlock: props.LambdaProtectedSubnetCIDR2,
-        availabilityZone: cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region)),
-        mapPublicIpOnLaunch: false,
-    });
-
-    Tags.of(lambdaProtectedSubnet2).add('Name', `${props.projectName}-${props.environment}-prot-lambda-${cdk.Fn.select(2, cdk.Fn.split('-', cdk.Fn.select(1, cdk.Fn.getAzs(cdk.Stack.of(this).region))))}`);
-    Tags.of(lambdaProtectedSubnet2).add('ProjectName', props.projectName);
-    Tags.of(lambdaProtectedSubnet2).add('Environment', props.environment);
-
-    new ec2.CfnSubnetRouteTableAssociation(this, 'LambdaProtectedSubnetAssociation2', {
-        subnetId: lambdaProtectedSubnet2.subnetId,
-        routeTableId: protectedRouteTable2.ref,
-    });
-
-    // Public Route Table
-    const publicRouteTable = new ec2.CfnRouteTable(this, 'PublicRouteTable', {
-        vpcId: vpc.vpcId,
-    });
-
-    Tags.of(publicRouteTable).add('Name', `${props.projectName}-${props.environment}-public-rtb`);
-    Tags.of(publicRouteTable).add('ProjectName', props.projectName);
-    Tags.of(publicRouteTable).add('Environment', props.environment);
-
-    new ec2.CfnRoute(this, 'PublicRoute', {
-        routeTableId: publicRouteTable.attrRouteTableId,
-        destinationCidrBlock: '0.0.0.0/0',
-        gatewayId: internetGateway.ref,
-    }).addDependency(internetGatewayAttachment);
-
-    new ec2.CfnSubnetRouteTableAssociation(this, 'NATGatewayPublicSubnetAssociation1', {
-        subnetId: natPublicSubnet1.subnetId,
-        routeTableId: publicRouteTable.attrRouteTableId,
-    });
-
-    new ec2.CfnSubnetRouteTableAssociation(this, 'NATGatewayPublicSubnetAssociation2', {
-        subnetId: natPublicSubnet2.subnetId,
-        routeTableId: publicRouteTable.attrRouteTableId,
-    });
-
-    new ec2.CfnRoute(this, 'NATGatewayAssociationForProtectedRoute1', {
-        routeTableId: protectedRouteTable1.attrRouteTableId,
-        destinationCidrBlock: '0.0.0.0/0',
-        natGatewayId: natGateway1.attrNatGatewayId,
-    });
-
-    new ec2.CfnRoute(this, 'NATGatewayAssociationForProtectedRoute2', {
-        routeTableId: protectedRouteTable2.attrRouteTableId,
-        destinationCidrBlock: '0.0.0.0/0',
-        natGatewayId: natGateway2.attrNatGatewayId,
-    });
-
-    this.vpcId = vpc.vpcId;
-    this.lambdaProtectedSubnet1Id = lambdaProtectedSubnet1.subnetId;
-    this.lambdaProtectedSubnet2Id = lambdaProtectedSubnet2.subnetId;
-    this.lambdaProtectedSubnet1 = lambdaProtectedSubnet1;
-    this.lambdaProtectedSubnet2 = lambdaProtectedSubnet2;
-}
+        this.vpcId = vpc.vpcId;
+        this.lambdaProtectedSubnet1Id = lambdaProtectedSubnet1.subnetId;
+        this.lambdaProtectedSubnet2Id = lambdaProtectedSubnet2.subnetId;
+        this.lambdaProtectedSubnet1 = lambdaProtectedSubnet1;
+        this.lambdaProtectedSubnet2 = lambdaProtectedSubnet2;
+    }
 }
