@@ -71,11 +71,11 @@ const api = new RestApi(apiStack, 'ApiGateway', {
   deployOptions: {
     stageName: 'dev',
   },
-  defaultCorsPreflightOptions: {
-    allowOrigins: Cors.ALL_ORIGINS,
-    allowMethods: Cors.ALL_METHODS,
-    allowHeaders: Cors.DEFAULT_HEADERS,
-  },
+  //defaultCorsPreflightOptions: {
+  //  allowOrigins: Cors.ALL_ORIGINS,
+  //  allowMethods: Cors.ALL_METHODS,
+  //  allowHeaders: Cors.DEFAULT_HEADERS,
+  //},
 });
 
 // Cognito User Pools authorizer を作成します。
@@ -90,6 +90,14 @@ const lambdaIntegration = new LambdaIntegration(lambdaStack.snowflakeConnectLamb
 
 // リソースパスを作成し、Cognito認証を追加します。
 const dataPath = api.root.addResource('data');
+
+// CORSの設定をリソースごとに追加
+dataPath.addCorsPreflight({
+  allowOrigins: Cors.ALL_ORIGINS,
+  allowMethods: ['GET', 'OPTIONS'],
+  allowHeaders: Cors.DEFAULT_HEADERS,
+});
+
 dataPath.addMethod('GET', lambdaIntegration, {
   authorizationType: AuthorizationType.COGNITO,
   authorizer: cognitoAuth,
